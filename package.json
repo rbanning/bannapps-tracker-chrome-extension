@@ -2,7 +2,7 @@
   "name": "banningapps-chrome-extension",
   "version": "1.0.0",
   "description": "A sample extension built by Banning Applications",
-  "main": "index.js",
+  "repository": "https://github.com/rbanning/bannapps-tracker-chrome-extension.git",
   "scripts": {
     "clean:extension": "rimraf extension",
     "copy:extension": "copyfiles -f bannapps-ext-app/dist/* extension",
