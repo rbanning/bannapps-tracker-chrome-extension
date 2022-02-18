@@ -4,7 +4,7 @@ import { RequestHelper } from "../utils/request-helper";
 import { ResponseHelper } from "../utils/response-helper";
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
-  const { httpMethod, path, headers, queryStringParameters, body } = event;
+  const { httpMethod } = event;
 
   const req = new RequestHelper('auth/:id/:action', event, context);
 
@@ -32,8 +32,13 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           }
         }
       }
+      break;
+    //CORS?
+    case 'GET':
+    case 'OPTION': 
+      return ResponseHelper.CORS().respond();
   }
 
   //else
-  return ResponseHelper.MethodNotAllowed(req).respond();
+  return ResponseHelper.MethodNotAllowed({req, event}).respond();
 }

@@ -13,6 +13,7 @@ export interface IStandardResponse {
   statusCode: number;
   body: IResponseBody | null;
   contentType: ContentTypes;
+  headers?: {[key: string]: string}
 }
 
 
@@ -23,6 +24,10 @@ export class ResponseHelper {
   error?: string | string[] | any;
   state?: any;
   contentType: ContentTypes;
+  private _headers?: {[key: string]: string};
+  get headers() {
+    return {...this._headers};
+  }
 
   get isValid() {
     return this.statusCode > 0 && !!this.message;
@@ -33,7 +38,8 @@ export class ResponseHelper {
     this.statusCode = 0;
     this.message = null;
     this.contentType = 'json';
-    
+    this._headers = {};
+
     if (resp) {
       this.statusCode = resp.statusCode;
       this.message = resp.body?.message;
@@ -41,6 +47,10 @@ export class ResponseHelper {
       this.error = resp.body?.error;
       this.contentType = resp.contentType || this.contentType;
     }
+
+    //HANDLE CORS?
+    this.addHeader("Access-Control-Allow-Origin", "*");
+
   }
 
   //#region >>> STATIC METHODS <<<
@@ -75,6 +85,11 @@ export class ResponseHelper {
     resp.setNegativeResp(500, message, error);
     return resp;
   }
+  static CORS() {
+    const resp = new ResponseHelper();
+    resp.setPositiveResp(200, "OK");
+    return resp;
+  }
   static OK(result: any | any[]) {
     const resp = new ResponseHelper();
     resp.setPositiveResp(200, "OK", result);
@@ -82,6 +97,8 @@ export class ResponseHelper {
   }
 
   //#endregion
+
+
 
   clone(resp: ResponseHelper) {
     this.statusCode = resp?.statusCode;
@@ -92,6 +109,13 @@ export class ResponseHelper {
     this.state = resp?.state;
     return this;
   }
+
+  addHeader(key: string, value: string) {
+    if (!this._headers) { this._headers = {}; }
+    this._headers[key] = value;
+    return this;
+  }
+
 
   setPositiveResp(statusCode: number, message: string, result?: any | any[]) {
     this.setResp(statusCode, message, result);
@@ -112,6 +136,7 @@ export class ResponseHelper {
       statusCode: this.statusCode,
       body: JSON.stringify(this.parseBody()), 
       headers: {
+        ...this.headers,
         'Content-Type': this.parseContentType(this.contentType)
       }
     };
