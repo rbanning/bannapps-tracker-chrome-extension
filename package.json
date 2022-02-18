@@ -5,7 +5,8 @@
   "repository": "https://github.com/rbanning/bannapps-tracker-chrome-extension.git",
   "scripts": {
     "clean:extension": "rimraf extension",
-    "copy:extension": "copyfiles -f dist/* extension"
+    "copy:extension": "copyfiles -f bannapps-tracker-chrome-extension-code/dist/* extension",
+    "build": "npm run clean:extension && npm run copy:extension"
   },
   "author": "Rob Banning",
   "license": "ISC",
