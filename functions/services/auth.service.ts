@@ -41,7 +41,7 @@ export class AuthService {
       && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
       const identity = new AuthIdentity(user);
       if (identity.isValid() && key === AuthService.AUTH_KEY) {
-        identity.role = user.hash === btoa(user.uid) ? 'manager' : 'viewer';
+        identity.role = user.hash === StringHelpers.btoa(user.uid) ? 'manager' : 'viewer';
         const token = this.createToken(identity);
         return { identity, token };
       }
@@ -68,7 +68,7 @@ export class AuthService {
       const token = [
         JSON.stringify(header),
         JSON.stringify(payload),
-        StringHelpers.reverse(btoa(JSON.stringify(signature)))
+        StringHelpers.reverse(StringHelpers.btoa(JSON.stringify(signature)))
       ];
 
       return token.map(btoa).join('.');
@@ -108,11 +108,11 @@ export class AuthService {
         const prefix = 'Bearer ';
         if (token.startsWith(prefix)) { token = token.substring(prefix.length); }
         const parts = token.split('.')
-                .map(atob); //each part should be encoded in BASE64
+                .map(StringHelpers.atob); //each part should be encoded in BASE64
         if (parts.length === 3) {
           const header = JSON.parse(parts[0]);
           const payload = JSON.parse(parts[1]);
-          const signature = JSON.parse(atob(StringHelpers.reverse(parts[2])));
+          const signature = JSON.parse(StringHelpers.atob(StringHelpers.reverse(parts[2])));
           if (header?.alg === AuthService.TOKEN_ALG 
             && signature?.key === AuthService.AUTH_KEY
             && signature?.secret?.length === AuthService.SIG_LEN

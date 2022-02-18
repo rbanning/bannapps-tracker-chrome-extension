@@ -1,6 +1,8 @@
 var __create = Object.create;
 var __defProp = Object.defineProperty;
+var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
+var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
@@ -18,6 +20,7 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
+var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -6127,6 +6130,12 @@ var StringHelpers;
     }
     return ret;
   };
+  StringHelpers2.btoa = (text) => {
+    return Buffer.from(text).toString("base64");
+  };
+  StringHelpers2.atob = (code) => {
+    return Buffer.from(code, "base64").toString();
+  };
 })(StringHelpers || (StringHelpers = {}));
 
 // functions/models/airtable-base.model.ts
@@ -6254,7 +6263,7 @@ var _AuthService = class {
     if (user && user.status === "Active" && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
       const identity = new AuthIdentity(user);
       if (identity.isValid() && key === _AuthService.AUTH_KEY) {
-        identity.role = user.hash === btoa(user.uid) ? "manager" : "viewer";
+        identity.role = user.hash === StringHelpers.btoa(user.uid) ? "manager" : "viewer";
         const token = this.createToken(identity);
         return { identity, token };
       }
@@ -6275,7 +6284,7 @@ var _AuthService = class {
       const token = [
         JSON.stringify(header),
         JSON.stringify(payload),
-        StringHelpers.reverse(btoa(JSON.stringify(signature)))
+        StringHelpers.reverse(StringHelpers.btoa(JSON.stringify(signature)))
       ];
       return token.map(btoa).join(".");
     }
@@ -6306,11 +6315,11 @@ var _AuthService = class {
         if (token.startsWith(prefix)) {
           token = token.substring(prefix.length);
         }
-        const parts = token.split(".").map(atob);
+        const parts = token.split(".").map(StringHelpers.atob);
         if (parts.length === 3) {
           const header = JSON.parse(parts[0]);
           const payload = JSON.parse(parts[1]);
-          const signature = JSON.parse(atob(StringHelpers.reverse(parts[2])));
+          const signature = JSON.parse(StringHelpers.atob(StringHelpers.reverse(parts[2])));
           if ((header == null ? void 0 : header.alg) === _AuthService.TOKEN_ALG && (signature == null ? void 0 : signature.key) === _AuthService.AUTH_KEY && ((_a = signature == null ? void 0 : signature.secret) == null ? void 0 : _a.length) === _AuthService.SIG_LEN && _AuthService.AUTH_KEY.includes(signature == null ? void 0 : signature.secret)) {
             identity = new AuthIdentity(payload);
             if (identity.isValid() && signature.id === identity.id) {
@@ -6436,6 +6445,9 @@ var RequestHelper = class {
 
 // functions/utils/response-helper.ts
 var ResponseHelper = class {
+  get headers() {
+    return __spreadValues({}, this._headers);
+  }
   get isValid() {
     return this.statusCode > 0 && !!this.message;
   }
@@ -6444,6 +6456,7 @@ var ResponseHelper = class {
     this.statusCode = 0;
     this.message = null;
     this.contentType = "json";
+    this._headers = {};
     if (resp) {
       this.statusCode = resp.statusCode;
       this.message = (_a = resp.body) == null ? void 0 : _a.message;
@@ -6451,23 +6464,24 @@ var ResponseHelper = class {
       this.error = (_c = resp.body) == null ? void 0 : _c.error;
       this.contentType = resp.contentType || this.contentType;
     }
+    this.addHeader("Access-Control-Allow-Origin", "*");
   }
-  static MethodNotAllowed() {
+  static MethodNotAllowed(error) {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(405, "Method Not Allowed");
+    resp.setNegativeResp(405, "Method Not Allowed", error);
     return resp;
   }
-  static NotFound() {
+  static NotFound(error) {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(404, "Not Found");
+    resp.setNegativeResp(404, "Not Found", error);
     return resp;
   }
-  static UnAuthorized() {
+  static UnAuthorized(error) {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(401, "Unauthorized");
+    resp.setNegativeResp(401, "Unauthorized", error);
     return resp;
   }
-  static Forbidden() {
+  static Forbidden(error) {
     const resp = new ResponseHelper();
     resp.setNegativeResp(403, "Forbidden - You do not have permission");
     return resp;
@@ -6482,6 +6496,11 @@ var ResponseHelper = class {
     resp.setNegativeResp(500, message, error);
     return resp;
   }
+  static CORS() {
+    const resp = new ResponseHelper();
+    resp.setPositiveResp(200, "OK");
+    return resp;
+  }
   static OK(result) {
     const resp = new ResponseHelper();
     resp.setPositiveResp(200, "OK", result);
@@ -6494,6 +6513,13 @@ var ResponseHelper = class {
     this.error = resp == null ? void 0 : resp.error;
     this.contentType = resp == null ? void 0 : resp.contentType;
     this.state = resp == null ? void 0 : resp.state;
+    return this;
+  }
+  addHeader(key, value) {
+    if (!this._headers) {
+      this._headers = {};
+    }
+    this._headers[key] = value;
     return this;
   }
   setPositiveResp(statusCode, message, result) {
@@ -6512,9 +6538,9 @@ var ResponseHelper = class {
     return {
       statusCode: this.statusCode,
       body: JSON.stringify(this.parseBody()),
-      headers: {
+      headers: __spreadProps(__spreadValues({}, this.headers), {
         "Content-Type": this.parseContentType(this.contentType)
-      }
+      })
     };
   }
   parseBody() {
@@ -6541,7 +6567,7 @@ var ResponseHelper = class {
 // functions/auth/auth.ts
 var handler = async (event, context) => {
   var _a;
-  const { httpMethod, path, headers, queryStringParameters, body } = event;
+  const { httpMethod } = event;
   const req = new RequestHelper("auth/:id/:action", event, context);
   switch (httpMethod) {
     case "POST":
@@ -6565,8 +6591,12 @@ var handler = async (event, context) => {
           }
         }
       }
+      break;
+    case "GET":
+    case "OPTION":
+      return ResponseHelper.CORS().respond();
   }
-  return ResponseHelper.MethodNotAllowed().respond();
+  return ResponseHelper.MethodNotAllowed({ req, event }).respond();
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

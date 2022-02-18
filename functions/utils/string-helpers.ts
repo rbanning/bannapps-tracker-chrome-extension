@@ -17,4 +17,12 @@ export namespace StringHelpers {
     return ret;
   }
 
+
+  export const btoa = (text: string) => {
+    return Buffer.from(text).toString('base64');
+  }
+
+  export const atob = (code: string) => {
+    return Buffer.from(code, 'base64').toString();
+  }
 }
