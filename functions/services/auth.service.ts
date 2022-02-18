@@ -71,7 +71,7 @@ export class AuthService {
         StringHelpers.reverse(StringHelpers.btoa(JSON.stringify(signature)))
       ];
 
-      return token.map(btoa).join('.');
+      return token.map(StringHelpers.btoa).join('.');
     }
 
     //else
