@@ -18,11 +18,11 @@ export abstract class AirtableBaseService<T> {
   protected readonly base: Airtable.Base;
   protected readonly table: Table<FieldSet>;
   protected readonly tableName: string;
-  protected readonly modelBuilder: {new (obj: any): T};
+  protected readonly modelBuilder: {new (obj?: any, id?: string): T};
 
   constructor(
     tableName: string,
-    modelBuilder: {new (obj: any): T}
+    modelBuilder: {new (obj?: any, id?: string): T}
   ) {
     this.tableName = tableName;
     this.modelBuilder = modelBuilder;
@@ -44,6 +44,13 @@ export abstract class AirtableBaseService<T> {
     return await this.table.find(id)
       .then((resp: Record<FieldSet>) => {
         return this.postGetterSingle(resp);
+      });
+  }
+
+  async get(filterByFormula: string): Promise<T | null> {
+    return await this.getAll({filterByFormula})
+      .then((resp: T[] | null) => {
+        return resp?.length > 0 ? resp[0] : null;
       });
   }
 
@@ -79,7 +86,7 @@ export abstract class AirtableBaseService<T> {
 
   protected postGetterSingle(resp: Record<FieldSet>): T | null {
     if (resp) {
-      return new this.modelBuilder(resp.fields);
+      return new this.modelBuilder(resp.fields, resp.id);
     }
     //else
     return null;

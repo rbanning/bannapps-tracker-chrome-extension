@@ -6082,17 +6082,62 @@ var require_airtable = __commonJS({
   }
 });
 
-// functions/sayhi/sayhi.ts
+// functions/echo/echo.ts
 __export(exports, {
   handler: () => handler
 });
 
-// functions/models/user.model.ts
-var User = class {
+// functions/models/identity.model.ts
+var AuthIdentity = class {
   constructor(obj = null) {
+    this.id = "";
+    this.name = "";
+    if (obj) {
+      this.id = obj.id || obj.uid || this.id;
+      this.name = obj.name || this.name;
+      this.contact = obj.contact || obj.email || obj.phone || this.contact;
+    }
+  }
+  isValid() {
+    return !!this.id && !!this.name;
+  }
+  static Deserialize(body) {
+    try {
+      const obj = JSON.parse(body);
+      return new AuthIdentity(obj);
+    } catch (error) {
+      console.warn("Could not deserialize identity", { error, body });
+      return null;
+    }
+  }
+};
+
+// functions/utils/string-helpers.ts
+var StringHelpers;
+(function(StringHelpers2) {
+  StringHelpers2.reverse = (text) => {
+    if (text) {
+      return text.split("").reverse().join("");
+    }
+    return text;
+  };
+})(StringHelpers || (StringHelpers = {}));
+
+// functions/models/airtable-base.model.ts
+var AirtableBaseModel = class {
+  constructor(key = null) {
+    this.key = key;
+  }
+};
+
+// functions/models/user.model.ts
+var User = class extends AirtableBaseModel {
+  constructor(obj = null, key = null) {
+    super(key);
     this.uid = User.GenerateUserId();
     this.status = "Pending";
     if (obj) {
+      this.key = obj.key || this.key;
       this.uid = obj.uid || this.uid;
       this.status = obj.status || this.status;
       this.name = obj.name;
@@ -6137,6 +6182,11 @@ var AirtableBaseService = class {
       return this.postGetterSingle(resp);
     });
   }
+  async get(filterByFormula) {
+    return await this.getAll({ filterByFormula }).then((resp) => {
+      return (resp == null ? void 0 : resp.length) > 0 ? resp[0] : null;
+    });
+  }
   async exists(filterByFormula) {
     return await this.getAll({ filterByFormula }).then((resp) => {
       return (resp == null ? void 0 : resp.length) > 0;
@@ -6154,7 +6204,7 @@ var AirtableBaseService = class {
   }
   postGetterSingle(resp) {
     if (resp) {
-      return new this.modelBuilder(resp.fields);
+      return new this.modelBuilder(resp.fields, resp.id);
     }
     return null;
   }
@@ -6171,39 +6221,32 @@ var UserService = class extends AirtableBaseService {
   constructor() {
     super(process.env.AT_TABLE_USERS, User);
   }
-};
-
-// functions/models/identity.model.ts
-var AuthIdentity = class {
-  constructor(obj = null) {
-    this.id = "";
-    this.name = "";
-    if (obj) {
-      this.id = obj.id || this.id;
-      this.name = obj.name || this.name;
-      this.contact = obj.contact || obj.email || obj.phone || this.contact;
-    }
+  async getByEmail(email) {
+    const filterByFormula = `{email} = "${email}"`;
+    return this.get(filterByFormula);
   }
-  isValid() {
-    return !!this.id && !!this.name;
-  }
-  static Deserialize(body) {
-    try {
-      const obj = JSON.parse(body);
-      return new AuthIdentity(obj);
-    } catch (error) {
-      console.warn("Could not deserialize identity", { error, body });
-      return null;
-    }
+  async emailExists(email) {
+    const filterByFormula = `{email} = "${email}"`;
+    return this.exists(filterByFormula);
   }
 };
 
 // functions/services/auth.service.ts
 var _AuthService = class {
-  login(identity, password) {
-    identity = new AuthIdentity(identity);
-    if (identity.isValid() && this.validatePassword(identity.id, identity.name, password)) {
-      return this.createToken(identity);
+  async login(email, password, key) {
+    let user;
+    try {
+      const userService = new UserService();
+      user = await userService.find(password);
+    } catch (err) {
+      console.warn("Problem getting user", err);
+    }
+    if (user && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+      const identity = new AuthIdentity(user);
+      if (identity.isValid() && key === _AuthService.AUTH_KEY) {
+        const token = this.createToken(identity);
+        return { identity, token };
+      }
     }
     return null;
   }
@@ -6216,48 +6259,73 @@ var _AuthService = class {
       });
       const signature = {
         id: identity.id,
+        role: payload.role === "manager" ? this.managerRoleSecret() : payload.role,
         key: _AuthService.AUTH_KEY,
         secret: this.pickRandomFromString(_AuthService.AUTH_KEY, _AuthService.SIG_LEN)
       };
       const token = [
         JSON.stringify(header),
         JSON.stringify(payload),
-        btoa(JSON.stringify(signature)).split("").reverse().join("")
+        StringHelpers.reverse(btoa(JSON.stringify(signature)))
       ];
       return token.map(btoa).join(".");
     }
     return null;
   }
-  calcPassword(id, name) {
-    name = name == null ? void 0 : name.toLocaleLowerCase().replace(" ", "");
-    if (id && name) {
-      const code = [
-        _AuthService.AUTH_KEY.substring(_AuthService.AUTH_KEY.length - 3),
-        name.substring(0, Math.min(name.length, 2)),
-        id.substring(Math.max(id.length - 2, 0)),
-        _AuthService.AUTH_KEY.substring(1, 2)
-      ];
-      return btoa(code.join(""));
-    }
-    return null;
-  }
   parseLoginBody(body) {
-    const ret = {
-      identity: null,
+    let ret = {
+      email: null,
       password: null,
+      key: null,
       error: null
     };
     try {
       const obj = JSON.parse(body);
-      ret.identity = new AuthIdentity(obj);
-      ret.password = obj.password;
+      ret = __spreadValues(__spreadValues({}, ret), obj);
     } catch (error) {
       ret.error = error;
     }
     return ret;
   }
-  validatePassword(id, name, password) {
-    return this.calcPassword(id, name) === password;
+  parseAuthToken(token) {
+    var _a;
+    let identity = null;
+    let authState = "none";
+    if (token) {
+      try {
+        const prefix = "Bearer ";
+        if (token.startsWith(prefix)) {
+          token = token.substring(prefix.length);
+        }
+        const parts = token.split(".").map(atob);
+        if (parts.length === 3) {
+          const header = JSON.parse(parts[0]);
+          const payload = JSON.parse(parts[1]);
+          const signature = JSON.parse(atob(StringHelpers.reverse(parts[2])));
+          if ((header == null ? void 0 : header.alg) === _AuthService.TOKEN_ALG && (signature == null ? void 0 : signature.key) === _AuthService.AUTH_KEY && ((_a = signature == null ? void 0 : signature.secret) == null ? void 0 : _a.length) === _AuthService.SIG_LEN && _AuthService.AUTH_KEY.includes(signature == null ? void 0 : signature.secret)) {
+            identity = new AuthIdentity(payload);
+            if (identity.isValid() && signature.id === identity.id) {
+              if (payload.role === this.managerRoleSecret()) {
+                authState = "manager";
+              } else {
+                authState = "viewer";
+              }
+            } else {
+              authState = "invalid";
+            }
+          }
+        }
+      } catch {
+        authState = "invalid";
+      }
+    }
+    return { identity, authState };
+  }
+  managerRoleSecret() {
+    if (_AuthService.AUTH_KEY.length > 10) {
+      return _AuthService.AUTH_KEY.substring(5, 10);
+    }
+    return null;
   }
   pickRandomFromString(text, count) {
     if ((text == null ? void 0 : text.length) >= count) {
@@ -6273,6 +6341,19 @@ AuthService.AUTH_KEY = process.env.AUTH_KEY;
 AuthService.SIG_LEN = 5;
 
 // functions/utils/request-helper.ts
+var RequestPath = class {
+  constructor(obj = null) {
+    this.params = {};
+    if (obj) {
+      this.path = obj.path;
+      this.params = obj.params || this.params;
+      this.template = obj.template;
+    }
+  }
+  get paramCount() {
+    return !!this.params ? Object.keys(this.params).map((key) => this.params[key]).filter(Boolean).length : 0;
+  }
+};
 var RequestHelper = class {
   constructor(template, event, context) {
     this.PATH_DELIM = "/";
@@ -6282,11 +6363,11 @@ var RequestHelper = class {
     this._identity = null;
     const { path, httpMethod } = event;
     this._httpMethod = httpMethod;
-    this.requestPath = {
+    this.requestPath = new RequestPath({
       path,
       params: {},
       template
-    };
+    });
     this.parsePath();
     this.parseAuthToken(event.headers["authorization"]);
   }
@@ -6300,7 +6381,8 @@ var RequestHelper = class {
     return this._httpMethod;
   }
   isAuthenticated() {
-    return this._authState === "viewer" || this._authState === "manager";
+    var _a;
+    return this._authState === "viewer" || this._authState === "manager" && ((_a = this.identity) == null ? void 0 : _a.isValid());
   }
   parsePath() {
     if (this.requestPath.path) {
@@ -6326,37 +6408,11 @@ var RequestHelper = class {
     }
   }
   parseAuthToken(token) {
-    var _a;
-    if (token) {
-      try {
-        const prefix = "Bearer ";
-        if (token.startsWith(prefix)) {
-          token = token.substring(prefix.length);
-        }
-        const parts = token.split(".").map(atob);
-        if (parts.length === 3) {
-          const header = JSON.parse(parts[0]);
-          const payload = JSON.parse(parts[1]);
-          const signature = JSON.parse(parts[2].split("").reverse().join(""));
-          if ((header == null ? void 0 : header.alg) === AuthService.TOKEN_ALG && (signature == null ? void 0 : signature.key) === this.AUTH_KEY && ((_a = signature == null ? void 0 : signature.secret) == null ? void 0 : _a.length) === AuthService.SIG_LEN && this.AUTH_KEY.includes(signature == null ? void 0 : signature.secret)) {
-            this._identity = new AuthIdentity(payload);
-            if (this.identity.isValid() && signature.id === this.identity.id) {
-              if (payload.role === this.AUTH_KEY.substring(0, 5)) {
-                this._authState = "manager";
-              } else {
-                this._authState = "viewer";
-              }
-            } else {
-              this._authState = "invalid";
-            }
-          }
-        }
-      } catch {
-        this._authState = "invalid";
-      }
-    } else {
-      this._authState = "none";
-    }
+    const authService = new AuthService();
+    console.log("DEBUG: parsing Auth Token", token);
+    const { identity, authState } = authService.parseAuthToken(token);
+    this._identity = identity;
+    this._authState = authState;
   }
 };
 
@@ -6383,6 +6439,11 @@ var ResponseHelper = class {
     resp.setNegativeResp(405, "Method Not Allowed");
     return resp;
   }
+  static NotFound() {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(404, "Not Found");
+    return resp;
+  }
   static UnAuthorized() {
     const resp = new ResponseHelper();
     resp.setNegativeResp(401, "Unauthorized");
@@ -6390,7 +6451,12 @@ var ResponseHelper = class {
   }
   static Forbidden() {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(403, "Forbidden");
+    resp.setNegativeResp(403, "Forbidden - You do not have permission");
+    return resp;
+  }
+  static BadRequest(message, error) {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(400, message, error);
     return resp;
   }
   static OK(result) {
@@ -6449,88 +6515,35 @@ var ResponseHelper = class {
   }
 };
 
-// functions/sayhi/sayhi.ts
+// functions/echo/echo.ts
 var handler = async (event, context) => {
-  const { httpMethod } = event;
+  const { httpMethod, path, headers, queryStringParameters, body } = event;
+  const req = new RequestHelper("echo/:id/:action", event, context);
   switch (httpMethod) {
     case "GET":
-      return await getUsers(event, context);
+      return ResponseHelper.OK({
+        httpMethod,
+        path,
+        headers,
+        queryStringParameters,
+        req
+      }).respond();
+    case "PUT":
     case "POST":
-      return await createUser(event, context);
+    case "PATCH":
+      return ResponseHelper.OK({
+        httpMethod,
+        path,
+        headers,
+        queryStringParameters,
+        body,
+        req
+      }).respond();
   }
   return ResponseHelper.MethodNotAllowed().respond();
-};
-var getUsers = async (event, context) => {
-  const resp = new ResponseHelper();
-  try {
-    const req = new RequestHelper("user/:id", event, context);
-    const { httpMethod } = req;
-    if (!req.isAuthenticated()) {
-      resp.clone(ResponseHelper.UnAuthorized());
-    }
-    if (httpMethod !== "GET") {
-      resp.clone(ResponseHelper.MethodNotAllowed());
-    }
-    if (resp.isValid) {
-      return resp.respond();
-    }
-    const userService = new UserService();
-    const result = await userService.getAll();
-    resp.setPositiveResp(200, "OK", result);
-  } catch (error) {
-    resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
-  }
-  return resp.respond();
-};
-var createUser = async (event, context) => {
-  const resp = new ResponseHelper();
-  try {
-    const { httpMethod } = event;
-    const user = User.Deserialize(event.body);
-    if (httpMethod !== "POST") {
-      resp.setNegativeResp(405, "Method Not Allowed");
-    } else if (!(user == null ? void 0 : user.uid) || !(user == null ? void 0 : user.name) || !(user == null ? void 0 : user.email)) {
-      const err = [];
-      if (!user) {
-        err.push("Could not deserialize payload");
-      } else {
-        if (!user.uid) {
-          err.push("Missing user id");
-        }
-        if (!user.name) {
-          err.push("Missing user name");
-        }
-        if (!user.email) {
-          err.push("Missing user email");
-        }
-      }
-      resp.setNegativeResp(400, "Bad Request", err);
-    }
-    if (resp.isValid) {
-      return resp.respond();
-    }
-    const userService = new UserService();
-    const filterByFormula = `{email} = "${user.email}"`;
-    if (await userService.exists(filterByFormula)) {
-      resp.setNegativeResp(400, "Bad Request", "A user record with this email address already exists");
-    }
-    if (resp.isValid) {
-      return resp.respond();
-    }
-    await userService.create(__spreadValues({}, user)).then((result) => {
-      resp.setPositiveResp(200, "OK", result);
-      console.log("Successfully created user: " + user.uid);
-    }).catch((err) => {
-      console.warn("There was a problem creating user: " + user.uid);
-      throw err;
-    });
-  } catch (error) {
-    resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
-  }
-  return resp.respond();
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   handler
 });
-//# sourceMappingURL=sayhi.js.map
+//# sourceMappingURL=echo.js.map

@@ -50,8 +50,43 @@ export class ResponseHelper {
     resp.setNegativeResp(405, "Method Not Allowed");
     return resp;
   }
+  static NotFound() {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(404, "Not Found");
+    return resp;
+  }
+  static UnAuthorized() {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(401, "Unauthorized");
+    return resp;
+  }
+  static Forbidden() {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(403, "Forbidden - You do not have permission");
+    return resp;
+  }
+  static BadRequest(message: string, error?: any) {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(400, message, error);
+    return resp;
+  }
+  static OK(result: any | any[]) {
+    const resp = new ResponseHelper();
+    resp.setPositiveResp(200, "OK", result);
+    return resp;
+  }
 
   //#endregion
+
+  clone(resp: ResponseHelper) {
+    this.statusCode = resp?.statusCode;
+    this.message = resp?.message;
+    this.result = resp?.result;
+    this.error = resp?.error;
+    this.contentType = resp?.contentType;
+    this.state = resp?.state;
+    return this;
+  }
 
   setPositiveResp(statusCode: number, message: string, result?: any | any[]) {
     this.setResp(statusCode, message, result);

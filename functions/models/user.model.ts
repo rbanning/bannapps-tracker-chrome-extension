@@ -1,7 +1,8 @@
+import { AirtableBaseModel, IAirtableBaseModel } from "./airtable-base.model";
 
 export type UserStatus = 'Pending' | 'Active' | 'Under Review' | 'Suspended';
 
-export interface IUser {
+export interface IUser extends IAirtableBaseModel {
   uid: string;
   status: UserStatus;
   name?: string;
@@ -10,7 +11,7 @@ export interface IUser {
   notes?: string;
 }
 
-export class User implements IUser {
+export class User extends AirtableBaseModel implements IUser {
   uid: string;
   status: UserStatus;
   name?: string;
@@ -18,10 +19,13 @@ export class User implements IUser {
   phone?: string;
   notes?: string;
 
-  constructor(obj: any = null) {
+  constructor(obj: any = null, key: string | null = null) {
+    super(key);
+
     this.uid = User.GenerateUserId();
     this.status = 'Pending';
     if (obj) {
+      this.key = obj.key || this.key; //for deserializing
       this.uid = obj.uid || this.uid;
       this.status = obj.status || this.status;
       this.name = obj.name;

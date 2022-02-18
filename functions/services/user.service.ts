@@ -9,4 +9,13 @@ export class UserService extends AirtableBaseService<IUser> {
       User                          //the class associated with IUser
     );
   }
+
+  async getByEmail(email: string) {
+    const filterByFormula = `{email} = "${email}"`;
+    return this.get(filterByFormula); 
+  }
+  async emailExists(email: string) {
+    const filterByFormula = `{email} = "${email}"`;
+    return this.exists(filterByFormula); 
+  }
 }
