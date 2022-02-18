@@ -1,0 +1,3 @@
+[submodule "extension-code"]
+	path = extension-code
+	url = https://github.com/rbanning/bannapps-tracker-chrome-extension-code.git
