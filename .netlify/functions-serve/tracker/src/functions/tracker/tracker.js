@@ -6427,6 +6427,13 @@ var Tracker = class extends AirtableBaseModel {
       }
     }
   }
+  toCreateDto() {
+    var _a;
+    const obj = __spreadValues({}, this);
+    delete obj.key;
+    obj.due = ((_a = this.due) == null ? void 0 : _a.isValid()) ? this.due.toISOString() : null;
+    return obj;
+  }
   static Deserialize(body) {
     try {
       const obj = JSON.parse(body);
@@ -6896,9 +6903,13 @@ var handler = async (event, context) => {
         }
       } else if (req.requestPath.paramCount === 1) {
         return await getTrackerRecord(event, context, req);
-      } else {
-        return ResponseHelper.NotFound().respond();
       }
+      return ResponseHelper.NotFound().respond();
+    case "POST":
+      if (req.requestPath.paramCount === 0) {
+        return await createTrackerRecord(event, context, req);
+      }
+      return ResponseHelper.NotFound().respond();
   }
   return ResponseHelper.MethodNotAllowed().respond();
 };
@@ -6937,6 +6948,60 @@ var getTrackerRecord = async (event, context, req) => {
     }
     return resp.respond();
   }
+};
+var createTrackerRecord = async (event, context, req) => {
+  const resp = new ResponseHelper();
+  try {
+    const req2 = new RequestHelper("user/:id", event, context);
+    const { httpMethod } = req2;
+    const record = Tracker.Deserialize(event.body);
+    if (!req2.isAuthenticated()) {
+      resp.clone(ResponseHelper.UnAuthorized());
+    } else if (httpMethod !== "POST") {
+      resp.clone(ResponseHelper.MethodNotAllowed());
+    } else if (!(record == null ? void 0 : record.id) || !(record == null ? void 0 : record.name) || !(record == null ? void 0 : record.domain) || !(record == null ? void 0 : record.url)) {
+      const err = [];
+      if (!record) {
+        err.push("Could not deserialize payload");
+      } else {
+        if (!record.id) {
+          err.push("Missing tracker id");
+        }
+        if (!record.name) {
+          err.push("Missing tracker name");
+        }
+        if (!record.domain) {
+          err.push("Missing tracker domain");
+        }
+        if (!record.url) {
+          err.push("Missing tracker url");
+        }
+      }
+      resp.clone(ResponseHelper.BadRequest("Bad Request", err));
+    }
+    if (resp.isValid) {
+      return resp.respond();
+    }
+    const userService = new UserService();
+    const trackerService = new TrackerService();
+    if (!await userService.uidExists(req2.identity.id)) {
+      resp.setNegativeResp(400, "Bad Request", "Could not find your uid in our database");
+    }
+    if (resp.isValid) {
+      return resp.respond();
+    }
+    record.uid = req2.identity.id;
+    await trackerService.create(record.toCreateDto()).then((result) => {
+      resp.setPositiveResp(200, "OK", result);
+      console.log("Successfully created tracker record: " + result.id);
+    }).catch((err) => {
+      console.warn("There was a problem creating tracker record: " + record.id);
+      throw err;
+    });
+  } catch (error) {
+    resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
+  }
+  return resp.respond();
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {

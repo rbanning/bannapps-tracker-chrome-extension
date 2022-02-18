@@ -16,17 +16,6 @@ export interface ITracker extends IAirtableBaseModel {
   due?: dayjs.Dayjs;
 }
 
-export interface ITrackerCreateDto {
-  id: string;
-  uid: string;
-  name: string;
-  domain: string;
-  url: string;
-  notes?: string;
-  due?: string;
-}
-
-
 
 export class Tracker extends AirtableBaseModel implements ITracker {
   id: string = '';
@@ -53,6 +42,15 @@ export class Tracker extends AirtableBaseModel implements ITracker {
         this.due = dayjs.utc(obj.due);  //come in as UTC
       }
     }
+  }
+
+  toCreateDto(): any {
+    const obj: any = {
+      ...this
+    };
+    delete obj.key; //cannot have the key in the create dto
+    obj.due = this.due?.isValid() ? this.due.toISOString() : null;
+    return obj;
   }
 
   static Deserialize(body: string): Tracker | null {

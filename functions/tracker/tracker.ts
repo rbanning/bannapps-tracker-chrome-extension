@@ -26,9 +26,16 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       } else if (req.requestPath.paramCount === 1) {
         //path = tracker/ ... get single tracker record
         return await getTrackerRecord(event, context, req);
-      } else {
-        return ResponseHelper.NotFound().respond();
       }
+      //else
+      return ResponseHelper.NotFound().respond();
+    case 'POST':
+        //path = tracker/ ... create tracker record
+      if (req.requestPath.paramCount === 0) {
+        return await createTrackerRecord(event, context, req);
+      }
+      //else
+      return ResponseHelper.NotFound().respond();      
   }
 
   //else
@@ -96,7 +103,7 @@ const getTrackerRecord = async (event: HandlerEvent, context: HandlerContext, re
 }
 
 
-const createUser = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
+const createTrackerRecord = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
 
   const resp = new ResponseHelper();
 
@@ -142,9 +149,7 @@ const createUser = async (event: HandlerEvent, context: HandlerContext, req: Req
     //OK... Create a record in the db
     record.uid = req.identity.id;
 
-    await trackerService.create({
-      ...record
-    })
+    await trackerService.create(record.toCreateDto())
     .then((result: ITracker) => {
       resp.setPositiveResp(200, "OK", result);
       console.log("Successfully created tracker record: " + result.id);
