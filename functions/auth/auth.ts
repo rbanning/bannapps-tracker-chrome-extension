@@ -35,5 +35,5 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   }
 
   //else
-  return ResponseHelper.MethodNotAllowed().respond();
+  return ResponseHelper.MethodNotAllowed(req).respond();
 }

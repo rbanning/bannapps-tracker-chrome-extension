@@ -45,22 +45,22 @@ export class ResponseHelper {
 
   //#region >>> STATIC METHODS <<<
 
-  static MethodNotAllowed() {
+  static MethodNotAllowed(error?: any) {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(405, "Method Not Allowed");
+    resp.setNegativeResp(405, "Method Not Allowed", error);
     return resp;
   }
-  static NotFound() {
+  static NotFound(error?: any) {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(404, "Not Found");
+    resp.setNegativeResp(404, "Not Found", error);
     return resp;
   }
-  static UnAuthorized() {
+  static UnAuthorized(error?: any) {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(401, "Unauthorized");
+    resp.setNegativeResp(401, "Unauthorized", error);
     return resp;
   }
-  static Forbidden() {
+  static Forbidden(error?: any) {
     const resp = new ResponseHelper();
     resp.setNegativeResp(403, "Forbidden - You do not have permission");
     return resp;
