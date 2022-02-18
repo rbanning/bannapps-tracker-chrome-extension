@@ -46,6 +46,17 @@ export class RequestHelper {
   private _httpMethod: string;
   get httpMethod() { return this._httpMethod; }
 
+  private _queryParams: {[key: string]: string};
+  get queryParams() {
+    if (this._queryParams) {
+      return {
+        ...this._queryParams
+      };
+    }
+    //else
+    return {};
+  }
+
   requestPath: IRequestPath;
 
   constructor(
@@ -53,8 +64,10 @@ export class RequestHelper {
     event: HandlerEvent, 
     context: HandlerContext) {
 
-      const { path, httpMethod } = event;
+      const { path, httpMethod, queryStringParameters } = event;
       this._httpMethod = httpMethod;
+      this._queryParams = queryStringParameters;
+
       this.requestPath = new RequestPath({
         path,
         params: {},
@@ -66,7 +79,9 @@ export class RequestHelper {
   }
 
   isAuthenticated() {
-    return this._authState === 'viewer' || this._authState === 'manager' && this.identity?.isValid();
+    return (this._authState === 'viewer' || this._authState === 'manager') 
+      && typeof(this._identity?.isValid) === 'function' 
+      && this._identity?.isValid();
   }
 
 
@@ -101,9 +116,12 @@ export class RequestHelper {
 
   private parseAuthToken(token: string) {
     const authService = new AuthService();
-    console.log("DEBUG: parsing Auth Token", token);
     const { identity, authState } = authService.parseAuthToken(token);
     this._identity = identity;
     this._authState = authState;
+    if (this.isAuthenticated()) {
+      //update identity role based on authState
+      this._identity.role = authState === 'manager' ? 'manager' : 'viewer';
+    }
   }
 }

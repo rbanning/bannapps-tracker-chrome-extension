@@ -70,6 +70,11 @@ export class ResponseHelper {
     resp.setNegativeResp(400, message, error);
     return resp;
   }
+  static ServerError(message: string, error?: any) {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(500, message, error);
+    return resp;
+  }
   static OK(result: any | any[]) {
     const resp = new ResponseHelper();
     resp.setPositiveResp(200, "OK", result);

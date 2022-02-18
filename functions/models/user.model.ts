@@ -1,3 +1,4 @@
+import { StringHelpers } from "../utils/string-helpers";
 import { AirtableBaseModel, IAirtableBaseModel } from "./airtable-base.model";
 
 export type UserStatus = 'Pending' | 'Active' | 'Under Review' | 'Suspended';
@@ -8,6 +9,7 @@ export interface IUser extends IAirtableBaseModel {
   name?: string;
   email?: string;
   phone?: string;
+  hash?: string;
   notes?: string;
 }
 
@@ -17,6 +19,7 @@ export class User extends AirtableBaseModel implements IUser {
   name?: string;
   email?: string;
   phone?: string;
+  hash?: string;
   notes?: string;
 
   constructor(obj: any = null, key: string | null = null) {
@@ -31,6 +34,7 @@ export class User extends AirtableBaseModel implements IUser {
       this.name = obj.name;
       this.email = obj.email;
       this.phone = obj.phone;
+      this.hash = obj.hash;
       this.notes = obj.notes;
     }
   }
@@ -45,11 +49,6 @@ export class User extends AirtableBaseModel implements IUser {
     }
   }
   static GenerateUserId(size: number = 6) {
-    const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890'.split('');
-    let ret = '';
-    while (ret.length < size) {
-      ret += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return ret;
+    return StringHelpers.generateId(size);
   }
 }

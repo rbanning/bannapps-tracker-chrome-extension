@@ -1,1 +1,0 @@
-module.exports = require('./src/functions/sayhi/sayhi.js')

@@ -1,8 +1,6 @@
 var __create = Object.create;
 var __defProp = Object.defineProperty;
-var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
@@ -20,7 +18,6 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
-var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -41,6 +38,296 @@ var __reExport = (target, module2, desc) => {
 var __toModule = (module2) => {
   return __reExport(__markAsModule(__defProp(module2 != null ? __create(__getProtoOf(module2)) : {}, "default", module2 && module2.__esModule && "default" in module2 ? { get: () => module2.default, enumerable: true } : { value: module2, enumerable: true })), module2);
 };
+
+// node_modules/dayjs/dayjs.min.js
+var require_dayjs_min = __commonJS({
+  "node_modules/dayjs/dayjs.min.js"(exports, module2) {
+    !function(t, e) {
+      typeof exports == "object" && typeof module2 != "undefined" ? module2.exports = e() : typeof define == "function" && define.amd ? define(e) : (t = typeof globalThis != "undefined" ? globalThis : t || self).dayjs = e();
+    }(exports, function() {
+      "use strict";
+      var t = 1e3, e = 6e4, n = 36e5, r = "millisecond", i = "second", s = "minute", u = "hour", a = "day", o = "week", f = "month", h = "quarter", c = "year", d = "date", $ = "Invalid Date", l = /^(\d{4})[-/]?(\d{1,2})?[-/]?(\d{0,2})[Tt\s]*(\d{1,2})?:?(\d{1,2})?:?(\d{1,2})?[.:]?(\d+)?$/, y = /\[([^\]]+)]|Y{1,4}|M{1,4}|D{1,2}|d{1,4}|H{1,2}|h{1,2}|a|A|m{1,2}|s{1,2}|Z{1,2}|SSS/g, M = { name: "en", weekdays: "Sunday_Monday_Tuesday_Wednesday_Thursday_Friday_Saturday".split("_"), months: "January_February_March_April_May_June_July_August_September_October_November_December".split("_") }, m = function(t2, e2, n2) {
+        var r2 = String(t2);
+        return !r2 || r2.length >= e2 ? t2 : "" + Array(e2 + 1 - r2.length).join(n2) + t2;
+      }, g = { s: m, z: function(t2) {
+        var e2 = -t2.utcOffset(), n2 = Math.abs(e2), r2 = Math.floor(n2 / 60), i2 = n2 % 60;
+        return (e2 <= 0 ? "+" : "-") + m(r2, 2, "0") + ":" + m(i2, 2, "0");
+      }, m: function t2(e2, n2) {
+        if (e2.date() < n2.date())
+          return -t2(n2, e2);
+        var r2 = 12 * (n2.year() - e2.year()) + (n2.month() - e2.month()), i2 = e2.clone().add(r2, f), s2 = n2 - i2 < 0, u2 = e2.clone().add(r2 + (s2 ? -1 : 1), f);
+        return +(-(r2 + (n2 - i2) / (s2 ? i2 - u2 : u2 - i2)) || 0);
+      }, a: function(t2) {
+        return t2 < 0 ? Math.ceil(t2) || 0 : Math.floor(t2);
+      }, p: function(t2) {
+        return { M: f, y: c, w: o, d: a, D: d, h: u, m: s, s: i, ms: r, Q: h }[t2] || String(t2 || "").toLowerCase().replace(/s$/, "");
+      }, u: function(t2) {
+        return t2 === void 0;
+      } }, D = "en", v = {};
+      v[D] = M;
+      var p = function(t2) {
+        return t2 instanceof _;
+      }, S = function(t2, e2, n2) {
+        var r2;
+        if (!t2)
+          return D;
+        if (typeof t2 == "string")
+          v[t2] && (r2 = t2), e2 && (v[t2] = e2, r2 = t2);
+        else {
+          var i2 = t2.name;
+          v[i2] = t2, r2 = i2;
+        }
+        return !n2 && r2 && (D = r2), r2 || !n2 && D;
+      }, w = function(t2, e2) {
+        if (p(t2))
+          return t2.clone();
+        var n2 = typeof e2 == "object" ? e2 : {};
+        return n2.date = t2, n2.args = arguments, new _(n2);
+      }, O = g;
+      O.l = S, O.i = p, O.w = function(t2, e2) {
+        return w(t2, { locale: e2.$L, utc: e2.$u, x: e2.$x, $offset: e2.$offset });
+      };
+      var _ = function() {
+        function M2(t2) {
+          this.$L = S(t2.locale, null, true), this.parse(t2);
+        }
+        var m2 = M2.prototype;
+        return m2.parse = function(t2) {
+          this.$d = function(t3) {
+            var e2 = t3.date, n2 = t3.utc;
+            if (e2 === null)
+              return new Date(NaN);
+            if (O.u(e2))
+              return new Date();
+            if (e2 instanceof Date)
+              return new Date(e2);
+            if (typeof e2 == "string" && !/Z$/i.test(e2)) {
+              var r2 = e2.match(l);
+              if (r2) {
+                var i2 = r2[2] - 1 || 0, s2 = (r2[7] || "0").substring(0, 3);
+                return n2 ? new Date(Date.UTC(r2[1], i2, r2[3] || 1, r2[4] || 0, r2[5] || 0, r2[6] || 0, s2)) : new Date(r2[1], i2, r2[3] || 1, r2[4] || 0, r2[5] || 0, r2[6] || 0, s2);
+              }
+            }
+            return new Date(e2);
+          }(t2), this.$x = t2.x || {}, this.init();
+        }, m2.init = function() {
+          var t2 = this.$d;
+          this.$y = t2.getFullYear(), this.$M = t2.getMonth(), this.$D = t2.getDate(), this.$W = t2.getDay(), this.$H = t2.getHours(), this.$m = t2.getMinutes(), this.$s = t2.getSeconds(), this.$ms = t2.getMilliseconds();
+        }, m2.$utils = function() {
+          return O;
+        }, m2.isValid = function() {
+          return !(this.$d.toString() === $);
+        }, m2.isSame = function(t2, e2) {
+          var n2 = w(t2);
+          return this.startOf(e2) <= n2 && n2 <= this.endOf(e2);
+        }, m2.isAfter = function(t2, e2) {
+          return w(t2) < this.startOf(e2);
+        }, m2.isBefore = function(t2, e2) {
+          return this.endOf(e2) < w(t2);
+        }, m2.$g = function(t2, e2, n2) {
+          return O.u(t2) ? this[e2] : this.set(n2, t2);
+        }, m2.unix = function() {
+          return Math.floor(this.valueOf() / 1e3);
+        }, m2.valueOf = function() {
+          return this.$d.getTime();
+        }, m2.startOf = function(t2, e2) {
+          var n2 = this, r2 = !!O.u(e2) || e2, h2 = O.p(t2), $2 = function(t3, e3) {
+            var i2 = O.w(n2.$u ? Date.UTC(n2.$y, e3, t3) : new Date(n2.$y, e3, t3), n2);
+            return r2 ? i2 : i2.endOf(a);
+          }, l2 = function(t3, e3) {
+            return O.w(n2.toDate()[t3].apply(n2.toDate("s"), (r2 ? [0, 0, 0, 0] : [23, 59, 59, 999]).slice(e3)), n2);
+          }, y2 = this.$W, M3 = this.$M, m3 = this.$D, g2 = "set" + (this.$u ? "UTC" : "");
+          switch (h2) {
+            case c:
+              return r2 ? $2(1, 0) : $2(31, 11);
+            case f:
+              return r2 ? $2(1, M3) : $2(0, M3 + 1);
+            case o:
+              var D2 = this.$locale().weekStart || 0, v2 = (y2 < D2 ? y2 + 7 : y2) - D2;
+              return $2(r2 ? m3 - v2 : m3 + (6 - v2), M3);
+            case a:
+            case d:
+              return l2(g2 + "Hours", 0);
+            case u:
+              return l2(g2 + "Minutes", 1);
+            case s:
+              return l2(g2 + "Seconds", 2);
+            case i:
+              return l2(g2 + "Milliseconds", 3);
+            default:
+              return this.clone();
+          }
+        }, m2.endOf = function(t2) {
+          return this.startOf(t2, false);
+        }, m2.$set = function(t2, e2) {
+          var n2, o2 = O.p(t2), h2 = "set" + (this.$u ? "UTC" : ""), $2 = (n2 = {}, n2[a] = h2 + "Date", n2[d] = h2 + "Date", n2[f] = h2 + "Month", n2[c] = h2 + "FullYear", n2[u] = h2 + "Hours", n2[s] = h2 + "Minutes", n2[i] = h2 + "Seconds", n2[r] = h2 + "Milliseconds", n2)[o2], l2 = o2 === a ? this.$D + (e2 - this.$W) : e2;
+          if (o2 === f || o2 === c) {
+            var y2 = this.clone().set(d, 1);
+            y2.$d[$2](l2), y2.init(), this.$d = y2.set(d, Math.min(this.$D, y2.daysInMonth())).$d;
+          } else
+            $2 && this.$d[$2](l2);
+          return this.init(), this;
+        }, m2.set = function(t2, e2) {
+          return this.clone().$set(t2, e2);
+        }, m2.get = function(t2) {
+          return this[O.p(t2)]();
+        }, m2.add = function(r2, h2) {
+          var d2, $2 = this;
+          r2 = Number(r2);
+          var l2 = O.p(h2), y2 = function(t2) {
+            var e2 = w($2);
+            return O.w(e2.date(e2.date() + Math.round(t2 * r2)), $2);
+          };
+          if (l2 === f)
+            return this.set(f, this.$M + r2);
+          if (l2 === c)
+            return this.set(c, this.$y + r2);
+          if (l2 === a)
+            return y2(1);
+          if (l2 === o)
+            return y2(7);
+          var M3 = (d2 = {}, d2[s] = e, d2[u] = n, d2[i] = t, d2)[l2] || 1, m3 = this.$d.getTime() + r2 * M3;
+          return O.w(m3, this);
+        }, m2.subtract = function(t2, e2) {
+          return this.add(-1 * t2, e2);
+        }, m2.format = function(t2) {
+          var e2 = this, n2 = this.$locale();
+          if (!this.isValid())
+            return n2.invalidDate || $;
+          var r2 = t2 || "YYYY-MM-DDTHH:mm:ssZ", i2 = O.z(this), s2 = this.$H, u2 = this.$m, a2 = this.$M, o2 = n2.weekdays, f2 = n2.months, h2 = function(t3, n3, i3, s3) {
+            return t3 && (t3[n3] || t3(e2, r2)) || i3[n3].substr(0, s3);
+          }, c2 = function(t3) {
+            return O.s(s2 % 12 || 12, t3, "0");
+          }, d2 = n2.meridiem || function(t3, e3, n3) {
+            var r3 = t3 < 12 ? "AM" : "PM";
+            return n3 ? r3.toLowerCase() : r3;
+          }, l2 = { YY: String(this.$y).slice(-2), YYYY: this.$y, M: a2 + 1, MM: O.s(a2 + 1, 2, "0"), MMM: h2(n2.monthsShort, a2, f2, 3), MMMM: h2(f2, a2), D: this.$D, DD: O.s(this.$D, 2, "0"), d: String(this.$W), dd: h2(n2.weekdaysMin, this.$W, o2, 2), ddd: h2(n2.weekdaysShort, this.$W, o2, 3), dddd: o2[this.$W], H: String(s2), HH: O.s(s2, 2, "0"), h: c2(1), hh: c2(2), a: d2(s2, u2, true), A: d2(s2, u2, false), m: String(u2), mm: O.s(u2, 2, "0"), s: String(this.$s), ss: O.s(this.$s, 2, "0"), SSS: O.s(this.$ms, 3, "0"), Z: i2 };
+          return r2.replace(y, function(t3, e3) {
+            return e3 || l2[t3] || i2.replace(":", "");
+          });
+        }, m2.utcOffset = function() {
+          return 15 * -Math.round(this.$d.getTimezoneOffset() / 15);
+        }, m2.diff = function(r2, d2, $2) {
+          var l2, y2 = O.p(d2), M3 = w(r2), m3 = (M3.utcOffset() - this.utcOffset()) * e, g2 = this - M3, D2 = O.m(this, M3);
+          return D2 = (l2 = {}, l2[c] = D2 / 12, l2[f] = D2, l2[h] = D2 / 3, l2[o] = (g2 - m3) / 6048e5, l2[a] = (g2 - m3) / 864e5, l2[u] = g2 / n, l2[s] = g2 / e, l2[i] = g2 / t, l2)[y2] || g2, $2 ? D2 : O.a(D2);
+        }, m2.daysInMonth = function() {
+          return this.endOf(f).$D;
+        }, m2.$locale = function() {
+          return v[this.$L];
+        }, m2.locale = function(t2, e2) {
+          if (!t2)
+            return this.$L;
+          var n2 = this.clone(), r2 = S(t2, e2, true);
+          return r2 && (n2.$L = r2), n2;
+        }, m2.clone = function() {
+          return O.w(this.$d, this);
+        }, m2.toDate = function() {
+          return new Date(this.valueOf());
+        }, m2.toJSON = function() {
+          return this.isValid() ? this.toISOString() : null;
+        }, m2.toISOString = function() {
+          return this.$d.toISOString();
+        }, m2.toString = function() {
+          return this.$d.toUTCString();
+        }, M2;
+      }(), b = _.prototype;
+      return w.prototype = b, [["$ms", r], ["$s", i], ["$m", s], ["$H", u], ["$W", a], ["$M", f], ["$y", c], ["$D", d]].forEach(function(t2) {
+        b[t2[1]] = function(e2) {
+          return this.$g(e2, t2[0], t2[1]);
+        };
+      }), w.extend = function(t2, e2) {
+        return t2.$i || (t2(e2, _, w), t2.$i = true), w;
+      }, w.locale = S, w.isDayjs = p, w.unix = function(t2) {
+        return w(1e3 * t2);
+      }, w.en = v[D], w.Ls = v, w.p = {}, w;
+    });
+  }
+});
+
+// node_modules/dayjs/plugin/utc.js
+var require_utc = __commonJS({
+  "node_modules/dayjs/plugin/utc.js"(exports, module2) {
+    !function(t, i) {
+      typeof exports == "object" && typeof module2 != "undefined" ? module2.exports = i() : typeof define == "function" && define.amd ? define(i) : (t = typeof globalThis != "undefined" ? globalThis : t || self).dayjs_plugin_utc = i();
+    }(exports, function() {
+      "use strict";
+      var t = "minute", i = /[+-]\d\d(?::?\d\d)?/g, e = /([+-]|\d\d)/g;
+      return function(s, f, n) {
+        var u = f.prototype;
+        n.utc = function(t2) {
+          var i2 = { date: t2, utc: true, args: arguments };
+          return new f(i2);
+        }, u.utc = function(i2) {
+          var e2 = n(this.toDate(), { locale: this.$L, utc: true });
+          return i2 ? e2.add(this.utcOffset(), t) : e2;
+        }, u.local = function() {
+          return n(this.toDate(), { locale: this.$L, utc: false });
+        };
+        var o = u.parse;
+        u.parse = function(t2) {
+          t2.utc && (this.$u = true), this.$utils().u(t2.$offset) || (this.$offset = t2.$offset), o.call(this, t2);
+        };
+        var r = u.init;
+        u.init = function() {
+          if (this.$u) {
+            var t2 = this.$d;
+            this.$y = t2.getUTCFullYear(), this.$M = t2.getUTCMonth(), this.$D = t2.getUTCDate(), this.$W = t2.getUTCDay(), this.$H = t2.getUTCHours(), this.$m = t2.getUTCMinutes(), this.$s = t2.getUTCSeconds(), this.$ms = t2.getUTCMilliseconds();
+          } else
+            r.call(this);
+        };
+        var a = u.utcOffset;
+        u.utcOffset = function(s2, f2) {
+          var n2 = this.$utils().u;
+          if (n2(s2))
+            return this.$u ? 0 : n2(this.$offset) ? a.call(this) : this.$offset;
+          if (typeof s2 == "string" && (s2 = function(t2) {
+            t2 === void 0 && (t2 = "");
+            var s3 = t2.match(i);
+            if (!s3)
+              return null;
+            var f3 = ("" + s3[0]).match(e) || ["-", 0, 0], n3 = f3[0], u3 = 60 * +f3[1] + +f3[2];
+            return u3 === 0 ? 0 : n3 === "+" ? u3 : -u3;
+          }(s2)) === null)
+            return this;
+          var u2 = Math.abs(s2) <= 16 ? 60 * s2 : s2, o2 = this;
+          if (f2)
+            return o2.$offset = u2, o2.$u = s2 === 0, o2;
+          if (s2 !== 0) {
+            var r2 = this.$u ? this.toDate().getTimezoneOffset() : -1 * this.utcOffset();
+            (o2 = this.local().add(u2 + r2, t)).$offset = u2, o2.$x.$localOffset = r2;
+          } else
+            o2 = this.utc();
+          return o2;
+        };
+        var h = u.format;
+        u.format = function(t2) {
+          var i2 = t2 || (this.$u ? "YYYY-MM-DDTHH:mm:ss[Z]" : "");
+          return h.call(this, i2);
+        }, u.valueOf = function() {
+          var t2 = this.$utils().u(this.$offset) ? 0 : this.$offset + (this.$x.$localOffset || new Date().getTimezoneOffset());
+          return this.$d.valueOf() - 6e4 * t2;
+        }, u.isUTC = function() {
+          return !!this.$u;
+        }, u.toISOString = function() {
+          return this.toDate().toISOString();
+        }, u.toString = function() {
+          return this.toDate().toUTCString();
+        };
+        var l = u.toDate;
+        u.toDate = function(t2) {
+          return t2 === "s" && this.$offset ? n(this.format("YYYY-MM-DD HH:mm:ss:SSS")).toDate() : l.call(this);
+        };
+        var c = u.diff;
+        u.diff = function(t2, i2, e2) {
+          if (t2 && this.$u === t2.$u)
+            return c.call(this, t2, i2, e2);
+          var s2 = this.local(), f2 = n(t2).local();
+          return c.call(s2, f2, i2, e2);
+        };
+      };
+    });
+  }
+});
 
 // node_modules/lodash/isArray.js
 var require_isArray = __commonJS({
@@ -1165,9 +1452,9 @@ var require_keys = __commonJS({
   }
 });
 
-// node_modules/webidl-conversions/lib/index.js
+// node_modules/whatwg-url/node_modules/webidl-conversions/lib/index.js
 var require_lib = __commonJS({
-  "node_modules/webidl-conversions/lib/index.js"(exports, module2) {
+  "node_modules/whatwg-url/node_modules/webidl-conversions/lib/index.js"(exports, module2) {
     "use strict";
     var conversions = {};
     module2.exports = conversions;
@@ -5678,7 +5965,7 @@ var require_package = __commonJS({
   "node_modules/airtable/package.json"(exports, module2) {
     module2.exports = {
       name: "airtable",
-      version: "0.11.1",
+      version: "0.11.2",
       license: "MIT",
       homepage: "https://github.com/airtable/airtable.js",
       repository: "git://github.com/airtable/airtable.js.git",
@@ -5696,7 +5983,7 @@ var require_package = __commonJS({
         "abort-controller": "^3.0.0",
         "abortcontroller-polyfill": "^1.4.0",
         lodash: "^4.17.21",
-        "node-fetch": "^2.6.1"
+        "node-fetch": "^2.6.7"
       },
       main: "./lib/airtable.js",
       types: "./lib/airtable.d.ts",
@@ -6082,41 +6369,75 @@ var require_airtable = __commonJS({
   }
 });
 
-// functions/sayhi/sayhi.ts
+// functions/tracker/tracker.ts
 __export(exports, {
   handler: () => handler
 });
 
-// functions/models/user.model.ts
-var User = class {
-  constructor(obj = null) {
-    this.uid = User.GenerateUserId();
-    this.status = "Pending";
-    if (obj) {
-      this.uid = obj.uid || this.uid;
-      this.status = obj.status || this.status;
-      this.name = obj.name;
-      this.email = obj.email;
-      this.phone = obj.phone;
-      this.notes = obj.notes;
+// functions/models/tracker.model.ts
+var import_dayjs = __toModule(require_dayjs_min());
+var import_utc = __toModule(require_utc());
+
+// functions/utils/string-helpers.ts
+var StringHelpers;
+(function(StringHelpers2) {
+  StringHelpers2.reverse = (text) => {
+    if (text) {
+      return text.split("").reverse().join("");
     }
-  }
-  static Deserialize(body) {
-    try {
-      const obj = JSON.parse(body);
-      return new User(obj);
-    } catch (error) {
-      console.warn("Could not deserialize user", { error, body });
-      return null;
-    }
-  }
-  static GenerateUserId(size = 6) {
+    return text;
+  };
+  StringHelpers2.generateId = (size) => {
     const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
     let ret = "";
     while (ret.length < size) {
       ret += chars[Math.floor(Math.random() * chars.length)];
     }
     return ret;
+  };
+})(StringHelpers || (StringHelpers = {}));
+
+// functions/models/airtable-base.model.ts
+var AirtableBaseModel = class {
+  constructor(key = null) {
+    this.key = key;
+  }
+};
+
+// functions/models/tracker.model.ts
+import_dayjs.default.extend(import_utc.default);
+var Tracker = class extends AirtableBaseModel {
+  constructor(obj = null, key = null) {
+    super(key);
+    this.id = "";
+    this.uid = "";
+    this.name = "";
+    this.domain = "";
+    this.url = "";
+    this.id = Tracker.GenerateTrackerId();
+    if (obj) {
+      this.id = obj.id || this.id;
+      this.uid = obj.uid;
+      this.name = obj.name;
+      this.domain = obj.domain;
+      this.url = obj.url;
+      this.notes = obj.notes;
+      if (obj.due) {
+        this.due = import_dayjs.default.utc(obj.due);
+      }
+    }
+  }
+  static Deserialize(body) {
+    try {
+      const obj = JSON.parse(body);
+      return new Tracker(obj);
+    } catch (error) {
+      console.warn("Could not deserialize tracker record", { error, body });
+      return null;
+    }
+  }
+  static GenerateTrackerId(size = 10) {
+    return StringHelpers.generateId(size);
   }
 };
 
@@ -6137,6 +6458,11 @@ var AirtableBaseService = class {
       return this.postGetterSingle(resp);
     });
   }
+  async get(filterByFormula) {
+    return await this.getAll({ filterByFormula }).then((resp) => {
+      return (resp == null ? void 0 : resp.length) > 0 ? resp[0] : null;
+    });
+  }
   async exists(filterByFormula) {
     return await this.getAll({ filterByFormula }).then((resp) => {
       return (resp == null ? void 0 : resp.length) > 0;
@@ -6154,7 +6480,7 @@ var AirtableBaseService = class {
   }
   postGetterSingle(resp) {
     if (resp) {
-      return new this.modelBuilder(resp.fields);
+      return new this.modelBuilder(resp.fields, resp.id);
     }
     return null;
   }
@@ -6166,10 +6492,68 @@ var AirtableBaseService = class {
   }
 };
 
+// functions/services/tracker.service.ts
+var TrackerService = class extends AirtableBaseService {
+  constructor() {
+    super(process.env.AT_TABLE_TRACKER, Tracker);
+  }
+  async getAllForUser(uid) {
+    const filterByFormula = `{uid} = "${uid}"`;
+    return this.getAll({ filterByFormula });
+  }
+};
+
+// functions/models/user.model.ts
+var User = class extends AirtableBaseModel {
+  constructor(obj = null, key = null) {
+    super(key);
+    this.uid = User.GenerateUserId();
+    this.status = "Pending";
+    if (obj) {
+      this.key = obj.key || this.key;
+      this.uid = obj.uid || this.uid;
+      this.status = obj.status || this.status;
+      this.name = obj.name;
+      this.email = obj.email;
+      this.phone = obj.phone;
+      this.hash = obj.hash;
+      this.notes = obj.notes;
+    }
+  }
+  static Deserialize(body) {
+    try {
+      const obj = JSON.parse(body);
+      return new User(obj);
+    } catch (error) {
+      console.warn("Could not deserialize user", { error, body });
+      return null;
+    }
+  }
+  static GenerateUserId(size = 6) {
+    return StringHelpers.generateId(size);
+  }
+};
+
 // functions/services/user.service.ts
 var UserService = class extends AirtableBaseService {
   constructor() {
     super(process.env.AT_TABLE_USERS, User);
+  }
+  async getByUid(uid) {
+    const filterByFormula = `{uid} = "${uid}"`;
+    return this.get(filterByFormula);
+  }
+  async getByEmail(email) {
+    const filterByFormula = `{email} = "${email}"`;
+    return this.get(filterByFormula);
+  }
+  async emailExists(email) {
+    const filterByFormula = `{email} = "${email}"`;
+    return this.exists(filterByFormula);
+  }
+  async uidExists(uid) {
+    const filterByFormula = `{uid} = "${uid}"`;
+    return this.exists(filterByFormula);
   }
 };
 
@@ -6179,9 +6563,10 @@ var AuthIdentity = class {
     this.id = "";
     this.name = "";
     if (obj) {
-      this.id = obj.id || this.id;
+      this.id = obj.id || obj.uid || this.id;
       this.name = obj.name || this.name;
       this.contact = obj.contact || obj.email || obj.phone || this.contact;
+      this.role = obj.role;
     }
   }
   isValid() {
@@ -6200,10 +6585,21 @@ var AuthIdentity = class {
 
 // functions/services/auth.service.ts
 var _AuthService = class {
-  login(identity, password) {
-    identity = new AuthIdentity(identity);
-    if (identity.isValid() && this.validatePassword(identity.id, identity.name, password)) {
-      return this.createToken(identity);
+  async login(email, password, key) {
+    let user;
+    try {
+      const userService = new UserService();
+      user = await userService.find(password);
+    } catch (err) {
+      console.warn("Problem getting user", err);
+    }
+    if (user && user.status === "Active" && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+      const identity = new AuthIdentity(user);
+      if (identity.isValid() && key === _AuthService.AUTH_KEY) {
+        identity.role = user.hash === btoa(user.uid) ? "manager" : "viewer";
+        const token = this.createToken(identity);
+        return { identity, token };
+      }
     }
     return null;
   }
@@ -6211,53 +6607,76 @@ var _AuthService = class {
     identity = new AuthIdentity(identity);
     if (identity.isValid()) {
       const header = { alg: _AuthService.TOKEN_ALG };
-      const payload = __spreadProps(__spreadValues({}, identity), {
-        role: "viewer"
-      });
+      const payload = __spreadValues({}, identity);
       const signature = {
         id: identity.id,
+        role: payload.role === "manager" ? this.managerRoleSecret() : payload.role,
         key: _AuthService.AUTH_KEY,
         secret: this.pickRandomFromString(_AuthService.AUTH_KEY, _AuthService.SIG_LEN)
       };
       const token = [
         JSON.stringify(header),
         JSON.stringify(payload),
-        btoa(JSON.stringify(signature)).split("").reverse().join("")
+        StringHelpers.reverse(btoa(JSON.stringify(signature)))
       ];
       return token.map(btoa).join(".");
     }
     return null;
   }
-  calcPassword(id, name) {
-    name = name == null ? void 0 : name.toLocaleLowerCase().replace(" ", "");
-    if (id && name) {
-      const code = [
-        _AuthService.AUTH_KEY.substring(_AuthService.AUTH_KEY.length - 3),
-        name.substring(0, Math.min(name.length, 2)),
-        id.substring(Math.max(id.length - 2, 0)),
-        _AuthService.AUTH_KEY.substring(1, 2)
-      ];
-      return btoa(code.join(""));
-    }
-    return null;
-  }
   parseLoginBody(body) {
-    const ret = {
-      identity: null,
+    let ret = {
+      email: null,
       password: null,
+      key: null,
       error: null
     };
     try {
       const obj = JSON.parse(body);
-      ret.identity = new AuthIdentity(obj);
-      ret.password = obj.password;
+      ret = __spreadValues(__spreadValues({}, ret), obj);
     } catch (error) {
       ret.error = error;
     }
     return ret;
   }
-  validatePassword(id, name, password) {
-    return this.calcPassword(id, name) === password;
+  parseAuthToken(token) {
+    var _a;
+    let identity = null;
+    let authState = "none";
+    if (token) {
+      try {
+        const prefix = "Bearer ";
+        if (token.startsWith(prefix)) {
+          token = token.substring(prefix.length);
+        }
+        const parts = token.split(".").map(atob);
+        if (parts.length === 3) {
+          const header = JSON.parse(parts[0]);
+          const payload = JSON.parse(parts[1]);
+          const signature = JSON.parse(atob(StringHelpers.reverse(parts[2])));
+          if ((header == null ? void 0 : header.alg) === _AuthService.TOKEN_ALG && (signature == null ? void 0 : signature.key) === _AuthService.AUTH_KEY && ((_a = signature == null ? void 0 : signature.secret) == null ? void 0 : _a.length) === _AuthService.SIG_LEN && _AuthService.AUTH_KEY.includes(signature == null ? void 0 : signature.secret)) {
+            identity = new AuthIdentity(payload);
+            if (identity.isValid() && signature.id === identity.id) {
+              if ((signature == null ? void 0 : signature.role) === this.managerRoleSecret()) {
+                authState = "manager";
+              } else {
+                authState = "viewer";
+              }
+            } else {
+              authState = "invalid";
+            }
+          }
+        }
+      } catch {
+        authState = "invalid";
+      }
+    }
+    return { identity, authState };
+  }
+  managerRoleSecret() {
+    if (_AuthService.AUTH_KEY.length > 10) {
+      return _AuthService.AUTH_KEY.substring(5, 10);
+    }
+    return null;
   }
   pickRandomFromString(text, count) {
     if ((text == null ? void 0 : text.length) >= count) {
@@ -6273,6 +6692,19 @@ AuthService.AUTH_KEY = process.env.AUTH_KEY;
 AuthService.SIG_LEN = 5;
 
 // functions/utils/request-helper.ts
+var RequestPath = class {
+  constructor(obj = null) {
+    this.params = {};
+    if (obj) {
+      this.path = obj.path;
+      this.params = obj.params || this.params;
+      this.template = obj.template;
+    }
+  }
+  get paramCount() {
+    return !!this.params ? Object.keys(this.params).map((key) => this.params[key]).filter(Boolean).length : 0;
+  }
+};
 var RequestHelper = class {
   constructor(template, event, context) {
     this.PATH_DELIM = "/";
@@ -6280,13 +6712,14 @@ var RequestHelper = class {
     this.AUTH_KEY = AuthService.AUTH_KEY;
     this._authState = null;
     this._identity = null;
-    const { path, httpMethod } = event;
+    const { path, httpMethod, queryStringParameters } = event;
     this._httpMethod = httpMethod;
-    this.requestPath = {
+    this._queryParams = queryStringParameters;
+    this.requestPath = new RequestPath({
       path,
       params: {},
       template
-    };
+    });
     this.parsePath();
     this.parseAuthToken(event.headers["authorization"]);
   }
@@ -6299,8 +6732,15 @@ var RequestHelper = class {
   get httpMethod() {
     return this._httpMethod;
   }
+  get queryParams() {
+    if (this._queryParams) {
+      return __spreadValues({}, this._queryParams);
+    }
+    return {};
+  }
   isAuthenticated() {
-    return this._authState === "viewer" || this._authState === "manager";
+    var _a, _b;
+    return (this._authState === "viewer" || this._authState === "manager") && typeof ((_a = this._identity) == null ? void 0 : _a.isValid) === "function" && ((_b = this._identity) == null ? void 0 : _b.isValid());
   }
   parsePath() {
     if (this.requestPath.path) {
@@ -6326,36 +6766,12 @@ var RequestHelper = class {
     }
   }
   parseAuthToken(token) {
-    var _a;
-    if (token) {
-      try {
-        const prefix = "Bearer ";
-        if (token.startsWith(prefix)) {
-          token = token.substring(prefix.length);
-        }
-        const parts = token.split(".").map(atob);
-        if (parts.length === 3) {
-          const header = JSON.parse(parts[0]);
-          const payload = JSON.parse(parts[1]);
-          const signature = JSON.parse(parts[2].split("").reverse().join(""));
-          if ((header == null ? void 0 : header.alg) === AuthService.TOKEN_ALG && (signature == null ? void 0 : signature.key) === this.AUTH_KEY && ((_a = signature == null ? void 0 : signature.secret) == null ? void 0 : _a.length) === AuthService.SIG_LEN && this.AUTH_KEY.includes(signature == null ? void 0 : signature.secret)) {
-            this._identity = new AuthIdentity(payload);
-            if (this.identity.isValid() && signature.id === this.identity.id) {
-              if (payload.role === this.AUTH_KEY.substring(0, 5)) {
-                this._authState = "manager";
-              } else {
-                this._authState = "viewer";
-              }
-            } else {
-              this._authState = "invalid";
-            }
-          }
-        }
-      } catch {
-        this._authState = "invalid";
-      }
-    } else {
-      this._authState = "none";
+    const authService = new AuthService();
+    const { identity, authState } = authService.parseAuthToken(token);
+    this._identity = identity;
+    this._authState = authState;
+    if (this.isAuthenticated()) {
+      this._identity.role = authState === "manager" ? "manager" : "viewer";
     }
   }
 };
@@ -6383,6 +6799,11 @@ var ResponseHelper = class {
     resp.setNegativeResp(405, "Method Not Allowed");
     return resp;
   }
+  static NotFound() {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(404, "Not Found");
+    return resp;
+  }
   static UnAuthorized() {
     const resp = new ResponseHelper();
     resp.setNegativeResp(401, "Unauthorized");
@@ -6390,7 +6811,17 @@ var ResponseHelper = class {
   }
   static Forbidden() {
     const resp = new ResponseHelper();
-    resp.setNegativeResp(403, "Forbidden");
+    resp.setNegativeResp(403, "Forbidden - You do not have permission");
+    return resp;
+  }
+  static BadRequest(message, error) {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(400, message, error);
+    return resp;
+  }
+  static ServerError(message, error) {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(500, message, error);
     return resp;
   }
   static OK(result) {
@@ -6449,88 +6880,66 @@ var ResponseHelper = class {
   }
 };
 
-// functions/sayhi/sayhi.ts
+// functions/tracker/tracker.ts
 var handler = async (event, context) => {
-  const { httpMethod } = event;
-  switch (httpMethod) {
+  const req = new RequestHelper("users/:id", event, context);
+  if (!req.isAuthenticated()) {
+    return ResponseHelper.UnAuthorized().respond();
+  }
+  switch (req.httpMethod) {
     case "GET":
-      return await getUsers(event, context);
-    case "POST":
-      return await createUser(event, context);
+      if (req.requestPath.paramCount === 0) {
+        if (req.authState === "manager") {
+          return await getAllRecords(event, context, req);
+        } else {
+          return await getAllRecordsForUser(event, context, req);
+        }
+      } else if (req.requestPath.paramCount === 1) {
+        return await getTrackerRecord(event, context, req);
+      } else {
+        return ResponseHelper.NotFound().respond();
+      }
   }
   return ResponseHelper.MethodNotAllowed().respond();
 };
-var getUsers = async (event, context) => {
-  const resp = new ResponseHelper();
+var getAllRecords = async (event, context, req) => {
   try {
-    const req = new RequestHelper("user/:id", event, context);
-    const { httpMethod } = req;
-    if (!req.isAuthenticated()) {
-      resp.clone(ResponseHelper.UnAuthorized());
-    }
-    if (httpMethod !== "GET") {
-      resp.clone(ResponseHelper.MethodNotAllowed());
-    }
-    if (resp.isValid) {
-      return resp.respond();
-    }
-    const userService = new UserService();
-    const result = await userService.getAll();
-    resp.setPositiveResp(200, "OK", result);
+    const trackerService = new TrackerService();
+    const result = await trackerService.getAll();
+    return ResponseHelper.OK(result).respond();
   } catch (error) {
-    resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
+    return ResponseHelper.ServerError("Oops! Something went wrong on our end.  Please try again later.", error);
   }
-  return resp.respond();
 };
-var createUser = async (event, context) => {
-  const resp = new ResponseHelper();
+var getAllRecordsForUser = async (event, context, req) => {
   try {
-    const { httpMethod } = event;
-    const user = User.Deserialize(event.body);
-    if (httpMethod !== "POST") {
-      resp.setNegativeResp(405, "Method Not Allowed");
-    } else if (!(user == null ? void 0 : user.uid) || !(user == null ? void 0 : user.name) || !(user == null ? void 0 : user.email)) {
-      const err = [];
-      if (!user) {
-        err.push("Could not deserialize payload");
-      } else {
-        if (!user.uid) {
-          err.push("Missing user id");
-        }
-        if (!user.name) {
-          err.push("Missing user name");
-        }
-        if (!user.email) {
-          err.push("Missing user email");
-        }
-      }
-      resp.setNegativeResp(400, "Bad Request", err);
-    }
-    if (resp.isValid) {
-      return resp.respond();
-    }
-    const userService = new UserService();
-    const filterByFormula = `{email} = "${user.email}"`;
-    if (await userService.exists(filterByFormula)) {
-      resp.setNegativeResp(400, "Bad Request", "A user record with this email address already exists");
-    }
-    if (resp.isValid) {
-      return resp.respond();
-    }
-    await userService.create(__spreadValues({}, user)).then((result) => {
-      resp.setPositiveResp(200, "OK", result);
-      console.log("Successfully created user: " + user.uid);
-    }).catch((err) => {
-      console.warn("There was a problem creating user: " + user.uid);
-      throw err;
-    });
+    const trackerService = new TrackerService();
+    const result = await trackerService.getAllForUser(req.identity.id);
+    return ResponseHelper.OK(result).respond();
   } catch (error) {
-    resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
+    return ResponseHelper.ServerError("Oops! Something went wrong on our end.  Please try again later.", error);
   }
-  return resp.respond();
+};
+var getTrackerRecord = async (event, context, req) => {
+  try {
+    if (!req.requestPath.params.id) {
+      return ResponseHelper.NotFound().respond();
+    }
+    const trackerService = new TrackerService();
+    const result = await trackerService.find(req.requestPath.params.id);
+    return ResponseHelper.OK(result);
+  } catch (error) {
+    const resp = new ResponseHelper();
+    if ((error == null ? void 0 : error.statusCode) && (error == null ? void 0 : error.message)) {
+      resp.setNegativeResp(error.statusCode, error.message);
+    } else {
+      resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
+    }
+    return resp.respond();
+  }
 };
 // Annotate the CommonJS export names for ESM import in node:
 0 && (module.exports = {
   handler
 });
-//# sourceMappingURL=sayhi.js.map
+//# sourceMappingURL=tracker.js.map

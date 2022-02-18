@@ -10,12 +10,20 @@ export class UserService extends AirtableBaseService<IUser> {
     );
   }
 
+  async getByUid(uid: string) {
+    const filterByFormula = `{uid} = "${uid}"`;
+    return this.get(filterByFormula); 
+  }
   async getByEmail(email: string) {
     const filterByFormula = `{email} = "${email}"`;
     return this.get(filterByFormula); 
   }
   async emailExists(email: string) {
     const filterByFormula = `{email} = "${email}"`;
+    return this.exists(filterByFormula); 
+  }
+  async uidExists(uid: string) {
+    const filterByFormula = `{uid} = "${uid}"`;
     return this.exists(filterByFormula); 
   }
 }

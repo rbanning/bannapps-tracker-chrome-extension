@@ -1,9 +1,9 @@
-import { AuthIdentity, IAuthIdentity } from "../models/identity.model";
+import { AuthIdentity, IAuthIdentity, Role } from "../models/identity.model";
 import { IUser, User } from "../models/user.model";
 import { StringHelpers } from "../utils/string-helpers";
 import { UserService } from "./user.service";
 
-export type AuthState = 'viewer' | 'manager' | 'invalid' | 'none';
+export type AuthState = Role | 'invalid' | 'none';
 
 export interface IAuthLoginBody {
   email: string | null;
@@ -36,9 +36,12 @@ export class AuthService {
       console.warn("Problem getting user", err);
     }
 
-    if (user && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+    if (user 
+      && user.status === 'Active'
+      && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
       const identity = new AuthIdentity(user);
       if (identity.isValid() && key === AuthService.AUTH_KEY) {
+        identity.role = user.hash === btoa(user.uid) ? 'manager' : 'viewer';
         const token = this.createToken(identity);
         return { identity, token };
       }
@@ -53,8 +56,7 @@ export class AuthService {
     if (identity.isValid()) {
       const header = { alg: AuthService.TOKEN_ALG };
       const payload = {
-        ...identity,
-        role: 'viewer'  //default
+        ...identity
       };
       const signature = {
         id: identity.id,
@@ -119,7 +121,7 @@ export class AuthService {
               identity = new AuthIdentity(payload);
               if (identity.isValid() && signature.id === identity.id) {
                 //authenticated
-                if (payload.role === this.managerRoleSecret()) {
+                if (signature?.role === this.managerRoleSecret()) {
                   authState = 'manager';
                 } else {
                   authState = 'viewer';

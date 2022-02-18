@@ -1,8 +1,6 @@
 var __create = Object.create;
 var __defProp = Object.defineProperty;
-var __defProps = Object.defineProperties;
 var __getOwnPropDesc = Object.getOwnPropertyDescriptor;
-var __getOwnPropDescs = Object.getOwnPropertyDescriptors;
 var __getOwnPropNames = Object.getOwnPropertyNames;
 var __getOwnPropSymbols = Object.getOwnPropertySymbols;
 var __getProtoOf = Object.getPrototypeOf;
@@ -20,7 +18,6 @@ var __spreadValues = (a, b) => {
     }
   return a;
 };
-var __spreadProps = (a, b) => __defProps(a, __getOwnPropDescs(b));
 var __markAsModule = (target) => __defProp(target, "__esModule", { value: true });
 var __commonJS = (cb, mod) => function __require() {
   return mod || (0, cb[Object.keys(cb)[0]])((mod = { exports: {} }).exports, mod), mod.exports;
@@ -1165,9 +1162,9 @@ var require_keys = __commonJS({
   }
 });
 
-// node_modules/webidl-conversions/lib/index.js
+// node_modules/whatwg-url/node_modules/webidl-conversions/lib/index.js
 var require_lib = __commonJS({
-  "node_modules/webidl-conversions/lib/index.js"(exports, module2) {
+  "node_modules/whatwg-url/node_modules/webidl-conversions/lib/index.js"(exports, module2) {
     "use strict";
     var conversions = {};
     module2.exports = conversions;
@@ -5678,7 +5675,7 @@ var require_package = __commonJS({
   "node_modules/airtable/package.json"(exports, module2) {
     module2.exports = {
       name: "airtable",
-      version: "0.11.1",
+      version: "0.11.2",
       license: "MIT",
       homepage: "https://github.com/airtable/airtable.js",
       repository: "git://github.com/airtable/airtable.js.git",
@@ -5696,7 +5693,7 @@ var require_package = __commonJS({
         "abort-controller": "^3.0.0",
         "abortcontroller-polyfill": "^1.4.0",
         lodash: "^4.17.21",
-        "node-fetch": "^2.6.1"
+        "node-fetch": "^2.6.7"
       },
       main: "./lib/airtable.js",
       types: "./lib/airtable.d.ts",
@@ -6096,6 +6093,7 @@ var AuthIdentity = class {
       this.id = obj.id || obj.uid || this.id;
       this.name = obj.name || this.name;
       this.contact = obj.contact || obj.email || obj.phone || this.contact;
+      this.role = obj.role;
     }
   }
   isValid() {
@@ -6121,6 +6119,14 @@ var StringHelpers;
     }
     return text;
   };
+  StringHelpers2.generateId = (size) => {
+    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
+    let ret = "";
+    while (ret.length < size) {
+      ret += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return ret;
+  };
 })(StringHelpers || (StringHelpers = {}));
 
 // functions/models/airtable-base.model.ts
@@ -6143,6 +6149,7 @@ var User = class extends AirtableBaseModel {
       this.name = obj.name;
       this.email = obj.email;
       this.phone = obj.phone;
+      this.hash = obj.hash;
       this.notes = obj.notes;
     }
   }
@@ -6156,12 +6163,7 @@ var User = class extends AirtableBaseModel {
     }
   }
   static GenerateUserId(size = 6) {
-    const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890".split("");
-    let ret = "";
-    while (ret.length < size) {
-      ret += chars[Math.floor(Math.random() * chars.length)];
-    }
-    return ret;
+    return StringHelpers.generateId(size);
   }
 };
 
@@ -6221,12 +6223,20 @@ var UserService = class extends AirtableBaseService {
   constructor() {
     super(process.env.AT_TABLE_USERS, User);
   }
+  async getByUid(uid) {
+    const filterByFormula = `{uid} = "${uid}"`;
+    return this.get(filterByFormula);
+  }
   async getByEmail(email) {
     const filterByFormula = `{email} = "${email}"`;
     return this.get(filterByFormula);
   }
   async emailExists(email) {
     const filterByFormula = `{email} = "${email}"`;
+    return this.exists(filterByFormula);
+  }
+  async uidExists(uid) {
+    const filterByFormula = `{uid} = "${uid}"`;
     return this.exists(filterByFormula);
   }
 };
@@ -6241,9 +6251,10 @@ var _AuthService = class {
     } catch (err) {
       console.warn("Problem getting user", err);
     }
-    if (user && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
+    if (user && user.status === "Active" && user.email.toLocaleLowerCase() === email.toLocaleLowerCase()) {
       const identity = new AuthIdentity(user);
       if (identity.isValid() && key === _AuthService.AUTH_KEY) {
+        identity.role = user.hash === btoa(user.uid) ? "manager" : "viewer";
         const token = this.createToken(identity);
         return { identity, token };
       }
@@ -6254,9 +6265,7 @@ var _AuthService = class {
     identity = new AuthIdentity(identity);
     if (identity.isValid()) {
       const header = { alg: _AuthService.TOKEN_ALG };
-      const payload = __spreadProps(__spreadValues({}, identity), {
-        role: "viewer"
-      });
+      const payload = __spreadValues({}, identity);
       const signature = {
         id: identity.id,
         role: payload.role === "manager" ? this.managerRoleSecret() : payload.role,
@@ -6305,7 +6314,7 @@ var _AuthService = class {
           if ((header == null ? void 0 : header.alg) === _AuthService.TOKEN_ALG && (signature == null ? void 0 : signature.key) === _AuthService.AUTH_KEY && ((_a = signature == null ? void 0 : signature.secret) == null ? void 0 : _a.length) === _AuthService.SIG_LEN && _AuthService.AUTH_KEY.includes(signature == null ? void 0 : signature.secret)) {
             identity = new AuthIdentity(payload);
             if (identity.isValid() && signature.id === identity.id) {
-              if (payload.role === this.managerRoleSecret()) {
+              if ((signature == null ? void 0 : signature.role) === this.managerRoleSecret()) {
                 authState = "manager";
               } else {
                 authState = "viewer";
@@ -6361,8 +6370,9 @@ var RequestHelper = class {
     this.AUTH_KEY = AuthService.AUTH_KEY;
     this._authState = null;
     this._identity = null;
-    const { path, httpMethod } = event;
+    const { path, httpMethod, queryStringParameters } = event;
     this._httpMethod = httpMethod;
+    this._queryParams = queryStringParameters;
     this.requestPath = new RequestPath({
       path,
       params: {},
@@ -6380,9 +6390,15 @@ var RequestHelper = class {
   get httpMethod() {
     return this._httpMethod;
   }
+  get queryParams() {
+    if (this._queryParams) {
+      return __spreadValues({}, this._queryParams);
+    }
+    return {};
+  }
   isAuthenticated() {
-    var _a;
-    return this._authState === "viewer" || this._authState === "manager" && ((_a = this.identity) == null ? void 0 : _a.isValid());
+    var _a, _b;
+    return (this._authState === "viewer" || this._authState === "manager") && typeof ((_a = this._identity) == null ? void 0 : _a.isValid) === "function" && ((_b = this._identity) == null ? void 0 : _b.isValid());
   }
   parsePath() {
     if (this.requestPath.path) {
@@ -6409,10 +6425,12 @@ var RequestHelper = class {
   }
   parseAuthToken(token) {
     const authService = new AuthService();
-    console.log("DEBUG: parsing Auth Token", token);
     const { identity, authState } = authService.parseAuthToken(token);
     this._identity = identity;
     this._authState = authState;
+    if (this.isAuthenticated()) {
+      this._identity.role = authState === "manager" ? "manager" : "viewer";
+    }
   }
 };
 
@@ -6457,6 +6475,11 @@ var ResponseHelper = class {
   static BadRequest(message, error) {
     const resp = new ResponseHelper();
     resp.setNegativeResp(400, message, error);
+    return resp;
+  }
+  static ServerError(message, error) {
+    const resp = new ResponseHelper();
+    resp.setNegativeResp(500, message, error);
     return resp;
   }
   static OK(result) {

@@ -17,7 +17,12 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
     case 'GET':
       if (req.requestPath.paramCount === 0) {
         //path = users/ ... get all users
-        return await getUsers(event, context, req);
+        if (req.authState === 'manager') {
+          //only managers can view all users
+          return await getUsers(event, context, req);
+        } else {
+          return await getThisUser(event, context, req);
+        }
       } else if (req.requestPath.paramCount === 1) {
         //path = users/:id
         return await getUser(event, context, req);
@@ -71,6 +76,29 @@ const getUser = async (event: HandlerEvent, context: HandlerContext, req: Reques
     const userService = new UserService();
 
     const result = await userService.find(req.requestPath.params.id);
+
+    resp.setPositiveResp(200, 'OK', result);
+
+  } catch (error) {
+    //check for error reported from airtable api
+    if (error?.statusCode && error?.message) {
+      resp.setNegativeResp(error.statusCode, error.message);
+    } else {
+      //general error
+      resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
+    }
+  }
+
+  return resp.respond();
+
+}
+const getThisUser = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
+  const resp = new ResponseHelper();
+
+  try {
+    const userService = new UserService();
+
+    const result = await userService.getByUid(req.identity.id);
 
     resp.setPositiveResp(200, 'OK', result);
 
