@@ -7,8 +7,14 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
   const { httpMethod } = event;
 
   const req = new RequestHelper('auth/:id/:action', event, context);
-
   switch (httpMethod) {
+    case 'GET':
+      const result = {
+        identity: req.identity || null,
+        isAuthenticated: req.isAuthenticated(),
+        state: req.authState
+      };
+      return ResponseHelper.OK(result).respond();
     case 'POST': 
       if (req.requestPath.paramCount === 0) {
         //path = auth/
@@ -34,7 +40,6 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
       }
       break;
     //CORS?
-    case 'GET':
     case 'OPTION': 
       return ResponseHelper.CORS().respond();
   }

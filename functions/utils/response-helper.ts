@@ -87,7 +87,7 @@ export class ResponseHelper {
   }
   static CORS() {
     const resp = new ResponseHelper();
-    resp.setPositiveResp(200, "OK");
+    resp.setPositiveResp(200, "OK - CORS");
     return resp;
   }
   static OK(result: any | any[]) {
