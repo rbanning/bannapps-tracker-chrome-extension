@@ -158,9 +158,9 @@ const createUser = async (event: HandlerEvent, context: HandlerContext, req: Req
     if (resp.isValid) { return resp.respond(); }
 
     //OK... Create a record in the db
-    await userService.create({
-      ...user
-    })
+    const data: any = {...user};
+    delete data.key;
+    await userService.create(data)
     .then((result: IUser) => {
       resp.setPositiveResp(200, "OK", result);
       console.log("Successfully created user: " + user.uid);
