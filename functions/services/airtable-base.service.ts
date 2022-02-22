@@ -69,6 +69,25 @@ export abstract class AirtableBaseService<T> {
       });
   }
 
+  async getGeneric(config?: IGetterConfig): Promise<any | any[] | null> {
+    return await this.table.select(config)
+      .all()
+      .then((resp: Records<FieldSet>) => {
+        if (Array.isArray(resp)) {
+          return resp.map(rec => {
+            if (rec?.id && rec?.id) {
+              return {
+                id: rec?.id,
+                ...rec.fields
+              };
+            }
+            //else
+            return rec;
+          });
+        }
+      });
+  }
+
   //#endregion
 
   //#region >> SETTERS <<

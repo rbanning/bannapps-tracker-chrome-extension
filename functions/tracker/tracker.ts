@@ -8,7 +8,7 @@ import { ResponseHelper } from "../utils/response-helper";
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   
-  const req = new RequestHelper('users/:id', event, context);
+  const req = new RequestHelper('tracker/:id', event, context);
   //all access to Users requires authentication
   if (!req.isAuthenticated()) {
     return ResponseHelper.UnAuthorized().respond();
@@ -24,6 +24,11 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
           return await getAllRecordsForUser(event, context, req);
         }
       } else if (req.requestPath.paramCount === 1) {
+        //special case...
+        if (req.requestPath.params.id === 'domains') {
+          return await getDomainsForUser(event, context, req);
+        }
+        //else
         //path = tracker/ ... get single tracker record
         return await getTrackerRecord(event, context, req);
       }
@@ -65,6 +70,36 @@ const getAllRecordsForUser = async (event: HandlerEvent, context: HandlerContext
 
     const result = await trackerService.getAllForUser(req.identity.id);
 
+    return ResponseHelper.OK(result).respond();
+
+  } catch (error) {
+    //todo: check for any airtable api errors?
+    return ResponseHelper.ServerError("Oops! Something went wrong on our end.  Please try again later.", error);
+  }
+}
+
+const getDomainsForUser = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
+  try {
+    //request has already been validated
+    const trackerService = new TrackerService();
+
+    const records = await trackerService.getDomainsForUser(req.identity.id);
+    const result = Array.isArray(records)
+      ? records.reduce((arr: any[], rec: any) => {
+        const obj = arr.find(m => m.domain === rec.domain);
+
+        if (obj) {
+          obj.count += 1;
+        } else {
+          arr.push({
+            domain: rec.domain,
+            count: 1
+          });
+        }
+        return arr;
+      }, [])
+      : [];
+    result.sort((a,b) => (a.domain > b.domain) ? 1 : ((a.domain < b.domain) ? -1 : 0));
     return ResponseHelper.OK(result).respond();
 
   } catch (error) {

@@ -2,15 +2,33 @@
   "manifest_version": 3,
   "name": "BannApps Tracker",
   "description": "A Chrome extension by Banning Applications",
+  "author": "Rob Banning",
   "version": "1.0",
   "action": {
     "default_title": "Tracker",
     "default_icon": {
       "16": "icon-16.png",
+      "32": "icon-32.png",
       "48": "icon-48.png",
       "128": "icon-128.png"
     },
     "default_popup": "popup.html"
+  },"options_page": "options.html",
+  "background": {
+    "service_worker": "background.js"
   },
-  "permissions": []
+  "permissions": [
+    "tabs",
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://bannapps-tracker-api.netlify.app/"
+  ],
+  "icons": {
+    "16": "icon-16.png",
+    "32": "icon-32.png",
+    "48": "icon-48.png",
+    "128": "icon-128.png"
+  }
 }
