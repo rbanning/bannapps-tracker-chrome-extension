@@ -19,18 +19,19 @@ chrome.tabs.onUpdated.addListener(monitorPageLoad);
 // Message Listeners
 
 chrome.runtime.onMessage.addListener(badgeTextMessageHandler);
+chrome.runtime.onMessage.addListener(pageMetaMessageHandler);
 
-chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => { 
-    getPageMeta()
-        .then(meta => {
-            console.log("DEBUG: back from getPageMeta", meta);
-            sendResponse(meta);
-        })
-        .catch(err => {
-            console.log("DEBUG: Error in getPageMeta", err);
-        });
-    return true;
-});
+// chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => { 
+//     getPageMeta()
+//         .then(meta => {
+//             console.log("DEBUG: back from getPageMeta", meta);
+//             sendResponse(meta);
+//         })
+//         .catch(err => {
+//             console.log("DEBUG: Error in getPageMeta", err);
+//         });
+//     return true;
+// });
 
 //#endregion
 
@@ -42,21 +43,20 @@ chrome.storage.local.get(["badgeText"], ({ badgeText }) => {
 
 //#endregion
 
-//#region define the handlers
 
-function monitorTabActivated(activeInfo) {
-  //todo: what to do when a tab is changed?
-}
-function monitorPageLoad(tabId, info, tab) {
-  if (info?.status === "complete") {
-    const data = {
-      tabId,
-      windowId: tab?.windowId,
-      title: tab?.title,
-      url: tab?.url,
-      domain: extractDomain(tab?.url),
-    };
-    console.log("DEBUG: Page Load", { data, tabId, info, tab });
+//#region >>> define the message handlers <<<
+
+function pageMetaMessageHandler(msg, sender, sendResponse) {
+  if (msg?.id === MESSAGE_KEYS.pageMeta) {
+    getPageMeta()
+        .then(meta => {
+            console.log("DEBUG: back from getPageMeta", meta);
+            sendResponse(meta);
+        })
+        .catch(err => {
+            console.log("DEBUG: Error in getPageMeta", err);
+        });
+    return true;
   }
 }
 
@@ -71,6 +71,28 @@ function badgeTextMessageHandler(msg, sender, sendResponse) {
     chrome.action.setBadgeText({ text });
     sendResponse(data);
     return true;
+  }
+}
+
+
+//#endregion
+
+
+//#region >>> define the handlers <<<
+
+function monitorTabActivated(activeInfo) {
+  //todo: what to do when a tab is changed?
+}
+function monitorPageLoad(tabId, info, tab) {
+  if (info?.status === "complete") {
+    const data = {
+      tabId,
+      windowId: tab?.windowId,
+      title: tab?.title,
+      url: tab?.url,
+      domain: extractDomain(tab?.url),
+    };
+    console.log("DEBUG: Page Load", { data, tabId, info, tab });
   }
 }
 

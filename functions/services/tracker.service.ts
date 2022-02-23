@@ -15,6 +15,11 @@ export class TrackerService extends AirtableBaseService<ITracker> {
     return this.getAll({filterByFormula}); 
   }
 
+  async getAllForUserSingleDomain(uid: string, domain: string) {
+    const filterByFormula = `AND({uid} = "${uid}", {domain} = "${domain}")`;
+    return this.getGeneric({filterByFormula}); 
+  }
+
   async getDomainsForUser(uid: string) {
     const filterByFormula = `{uid} = "${uid}"`;
     const fields = ['uid', 'domain'];

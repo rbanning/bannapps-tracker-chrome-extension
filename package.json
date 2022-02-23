@@ -4,6 +4,7 @@
   "description": "A sample extension built by Banning Applications",
   "repository": "https://github.com/rbanning/bannapps-tracker-chrome-extension.git",
   "scripts": {
+    "debug": "netlify dev --inspect",
     "clean:extension": "rimraf extension",
     "copy:extension": "copyfiles -f extension-code/dist/* extension",
     "doit": "npm run clean:extension && npm run copy:extension",

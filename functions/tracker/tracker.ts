@@ -8,7 +8,7 @@ import { ResponseHelper } from "../utils/response-helper";
 
 export const handler: Handler = async (event: HandlerEvent, context: HandlerContext) => {
   
-  const req = new RequestHelper('tracker/:id', event, context);
+  const req = new RequestHelper('tracker/:domain', event, context);
   //all access to Users requires authentication
   if (!req.isAuthenticated()) {
     return ResponseHelper.UnAuthorized().respond();
@@ -25,12 +25,12 @@ export const handler: Handler = async (event: HandlerEvent, context: HandlerCont
         }
       } else if (req.requestPath.paramCount === 1) {
         //special case...
-        if (req.requestPath.params.id === 'domains') {
+        if (req.requestPath.params.domain === 'domains') {
           return await getDomainsForUser(event, context, req);
         }
         //else
-        //path = tracker/ ... get single tracker record
-        return await getTrackerRecord(event, context, req);
+        //path = tracker/ ... get all tracker records for single domain
+        return await getAllRecordsForUserSingleDomain(event, context, req);
       }
       //else
       return ResponseHelper.NotFound().respond();
@@ -77,6 +77,20 @@ const getAllRecordsForUser = async (event: HandlerEvent, context: HandlerContext
     return ResponseHelper.ServerError("Oops! Something went wrong on our end.  Please try again later.", error);
   }
 }
+const getAllRecordsForUserSingleDomain = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
+  try {
+    //request has already been validated
+    const trackerService = new TrackerService();
+
+    const result = await trackerService.getAllForUserSingleDomain(req.identity.id, req.requestPath.params.domain);
+
+    return ResponseHelper.OK(result).respond();
+
+  } catch (error) {
+    //todo: check for any airtable api errors?
+    return ResponseHelper.ServerError("Oops! Something went wrong on our end.  Please try again later.", error);
+  }
+}
 
 const getDomainsForUser = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
   try {
@@ -105,35 +119,6 @@ const getDomainsForUser = async (event: HandlerEvent, context: HandlerContext, r
   } catch (error) {
     //todo: check for any airtable api errors?
     return ResponseHelper.ServerError("Oops! Something went wrong on our end.  Please try again later.", error);
-  }
-}
-
-const getTrackerRecord = async (event: HandlerEvent, context: HandlerContext, req: RequestHelper) => {
-
-  try {
-    //check if the user id is in the route
-    if (!req.requestPath.params.id) {
-      return ResponseHelper.NotFound().respond();
-    }
-
-    const trackerService = new TrackerService();
-
-    const result = await trackerService.find(req.requestPath.params.id);
-
-    //todo: verify that this user can access this record
-
-    return ResponseHelper.OK(result);
-
-  } catch (error) {
-    const resp = new ResponseHelper();
-    //check for error reported from airtable api
-    if (error?.statusCode && error?.message) {
-      resp.setNegativeResp(error.statusCode, error.message);
-    } else {
-      //general error
-      resp.setNegativeResp(500, "Oops! Something went wrong on our end.  Please try again later.", error);
-    }
-    return resp.respond();
   }
 }
 
